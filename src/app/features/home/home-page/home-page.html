@@ -1,0 +1,82 @@
+@if (store.status() !== 'ready') {
+  <app-load-state [status]="store.status()" (retry)="reload()" />
+} @else if (store.rooms().length === 0) {
+  <app-empty-state (create)="openCreateRoom()" />
+} @else {
+  <div class="page">
+    <div class="grid grid--3">
+      @if (noDevices()) {
+        <!-- The rooms exist but the house is empty: say what happens next. -->
+        <section class="tile span-2">
+          <span class="tile__label" i18n="@@home.noDevicesLabel">Kom godt i gang</span>
+          <span class="tile__headline" i18n="@@home.noDevicesTitle">Ingen enheder endnu</span>
+          <span class="lead" i18n="@@home.noDevicesText">
+            Sæt enheden til strøm og hold den tændt — så leder vi efter den på husets wifi.
+          </span>
+          <div class="tile__bottom">
+            <button type="button" class="btn btn--primary" (click)="openAddDevice()">
+              <ng-container i18n="@@addDevice.title">Tilføj enhed</ng-container>
+            </button>
+          </div>
+        </section>
+
+        <button type="button" class="tile" routerLink="/rum">
+          <span class="tile__label" i18n="@@home.roomsReadyLabel">Dine rum</span>
+          <span class="tile__state">{{ roomsReadyHeadline() }}</span>
+          <span class="tile__meta">{{ roomNames() }}</span>
+        </button>
+      }
+
+      @if (anyLamps()) {
+        <section class="tile span-2" [class.tile--warm]="anyLampOn()">
+          <span class="tile__label" i18n="@@home.lightsTileLabel">Lys i huset</span>
+          <span class="tile__headline">{{ lightHeadline() }}</span>
+          <div class="tile__bottom">
+            <app-toggle-switch
+              [checked]="anyLampOn()"
+              [label]="allLampsToggleLabel()"
+              (toggled)="toggleAllLamps()"
+            />
+            <span class="tile__switch-label">
+              @if (anyLampOn()) {
+                <ng-container i18n="@@home.allOff">Sluk alle</ng-container>
+              } @else {
+                <ng-container i18n="@@home.allOn">Tænd alle</ng-container>
+              }
+            </span>
+          </div>
+        </section>
+      }
+
+      @if (showQuietTile()) {
+        <!-- Devices exist, but none of them has anything to show on the home screen. -->
+        <button type="button" class="tile span-2" routerLink="/enheder">
+          <span class="tile__label" i18n="@@home.quietLabel">Huset</span>
+          <span class="tile__headline" i18n="@@home.quietTitle">Alt ser normalt ud</span>
+          <span class="tile__meta">{{ quietSummary() }}</span>
+        </button>
+      }
+
+      @for (tile of roomTiles(); track tile.room.id) {
+        <button type="button" class="tile" [routerLink]="['/rum', tile.room.id]">
+          <span class="tile__label">{{ tile.room.name }}</span>
+          <span class="tile__reading">{{ tile.reading }}</span>
+          <span class="tile__meta">{{ tile.meta }}</span>
+        </button>
+      }
+
+      @for (alert of alertTiles(); track alert.device.id) {
+        <button type="button" class="tile tile--alert" (click)="openAlert(alert.device.id)">
+          <span class="tile__label"><span class="tile__dot"></span>{{ alert.roomName }}</span>
+          <span class="tile__alert-title" i18n="@@home.alertTitle">
+            {{ alert.device.name }} svarer ikke
+          </span>
+          <span class="tile__alert-text" i18n="@@home.alertText">
+            Tjek at den har strøm og er på husets wifi
+          </span>
+          <span class="tile__meta" i18n="@@home.alertCta">Vis mig hvad jeg gør →</span>
+        </button>
+      }
+    </div>
+  </div>
+}
