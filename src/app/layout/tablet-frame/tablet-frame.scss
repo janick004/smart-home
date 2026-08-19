@@ -1,0 +1,87 @@
+/* The iPad, landscape only. --canvas-w / --canvas-h (styles.scss) is the design
+   canvas; --frame-scale comes from the component and shrinks the whole device to
+   fit the window. There is no portrait or phone layout — a small window just
+   shows a smaller iPad.
+
+   Deliberately plain: a black glass front with a thin aluminium edge, a camera,
+   and a shadow. Nothing else — the app is the thing being looked at. */
+
+:host {
+  --bezel: 36px;
+  --gutter: 28px;
+  --device-w: calc(var(--canvas-w) + 2 * var(--bezel));
+  --device-h: calc(var(--canvas-h) + 2 * var(--bezel));
+  /* Concentric corners: the screen's radius is the case's radius minus the
+     bezel it sits inside. Derived, never typed twice, so they cannot drift. */
+  --radius-screen: calc(var(--radius-device) - var(--bezel));
+
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--gutter);
+  background:
+    radial-gradient(120% 95% at 50% -15%, #1b1f27 0%, transparent 60%), var(--frame-backdrop);
+}
+
+/* Takes up exactly the scaled size, so the window never scrolls. */
+.tablet-frame__fit {
+  width: calc(var(--device-w) * var(--frame-scale));
+  height: calc(var(--device-h) * var(--frame-scale));
+}
+
+.tablet-frame__device {
+  position: relative;
+  width: var(--device-w);
+  height: var(--device-h);
+  /* The bezel is a transparent BORDER, not padding, on purpose: a transformed
+     element is the containing block for its fixed-position descendants, and
+     that containing block is the padding box. With padding, modals and toasts
+     would anchor to the outer edge of the case and hang over the bezel; with a
+     border they anchor to the screen itself. */
+  border: var(--bezel) solid transparent;
+  /* Scaling from the corner keeps the device inside .tablet-frame__fit. */
+  transform: scale(var(--frame-scale));
+  transform-origin: top left;
+  border-radius: var(--radius-device);
+  background: #000000;
+  background-clip: border-box; /* paints under the transparent border, i.e. the bezel */
+  box-shadow:
+    /* the machined aluminium edge */
+    inset 0 0 0 1.5px rgb(174 182 196 / 0.22),
+    0 30px 60px -30px rgb(0 0 0 / 0.85),
+    0 60px 120px -50px rgb(0 0 0 / 0.9);
+
+  /* Overlays inside the frame measure against the iPad screen, not the window. */
+  --app-w: var(--canvas-w);
+  --app-h: var(--canvas-h);
+}
+
+/* Front camera in the top bezel — landscape, like an iPad with the camera on
+   the long edge. The offset is negative because absolute positioning starts
+   inside the border. */
+.tablet-frame__camera {
+  position: absolute;
+  top: calc(var(--bezel) / -2);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #14171c;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+.tablet-frame__screen {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--radius-screen);
+  background: var(--bg);
+  /* hairline where the glass meets the display, so the corners read */
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  scrollbar-width: none; /* a tablet has no scrollbar */
+}
+
+.tablet-frame__screen::-webkit-scrollbar {
+  display: none;
+}

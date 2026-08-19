@@ -1,0 +1,54 @@
+@if (store.status() !== 'ready') {
+  <app-load-state [status]="store.status()" (retry)="reload()" />
+} @else if (store.rooms().length === 0) {
+  <app-empty-state (create)="openCreateRoom()" />
+} @else if (rows().length === 0) {
+  <div class="page">
+    <div class="grid grid--3">
+      <section class="tile">
+        <span class="tile__label" i18n="@@devices.emptyLabel">Ingen enheder endnu</span>
+        <span class="tile__state" i18n="@@devices.emptyTitle">Tilføj din første enhed</span>
+        <div class="tile__bottom">
+          <button type="button" class="btn btn--primary" (click)="openAddDevice()">
+            <ng-container i18n="@@addDevice.title">Tilføj enhed</ng-container>
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+} @else {
+  <div class="page">
+    <div class="grid grid--3">
+      @for (row of rows(); track row.device.id) {
+        <div
+          class="tile tile--pressable tile--device"
+          [class.tile--warm]="row.warm"
+          [class.tile--alert]="!row.device.online"
+          appLongPress
+          (appLongPress)="openMenu(row.device.id)"
+        >
+          <button type="button" class="tile__hit" (click)="openDetail(row.device.id)">
+            <span class="visually-hidden" i18n="@@tile.detailsFor">
+              Detaljer for {{ row.device.name }}
+            </span>
+          </button>
+          <button
+            type="button"
+            class="visually-hidden tile__actions"
+            aria-haspopup="dialog"
+            (click)="openMenu(row.device.id)"
+            i18n="@@tile.actionsFor"
+          >
+            Handlinger for {{ row.device.name }}
+          </button>
+          <span class="tile__label">{{ row.roomName }}</span>
+          <span class="tile__title">{{ row.device.name }}</span>
+          <span class="tile__meta">{{ row.status }}</span>
+        </div>
+      }
+    </div>
+    <p class="page__hint" i18n="@@tile.longPressHint">
+      Tryk og hold på en flise for at omdøbe, flytte til andet rum eller fjerne enheden
+    </p>
+  </div>
+}

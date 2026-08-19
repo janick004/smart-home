@@ -1,0 +1,162 @@
+<app-modal i18n-label="@@addDevice.title" label="Tilføj enhed" (closed)="close()">
+  <h2 class="modal__title" i18n="@@addDevice.title">Tilføj enhed</h2>
+
+  @switch (phase()) {
+    @case ('searching') {
+      <div class="searching">
+        <span class="searching__pulse" aria-hidden="true"></span>
+        <p class="modal__text" i18n="@@addDevice.searching">Søger efter nye enheder på dit wifi…</p>
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost grow" (click)="close()" i18n="@@dialog.cancel">
+          Fortryd
+        </button>
+      </div>
+    }
+    @case ('none') {
+      <p class="modal__text" i18n="@@addDevice.noneFound">
+        Vi fandt ingen nye enheder. Tjek at enheden har strøm og er på husets wifi.
+      </p>
+      <div class="modal__actions">
+        <button
+          type="button"
+          class="btn btn--primary grow"
+          (click)="search()"
+          i18n="@@addDevice.searchAgain"
+        >
+          Søg igen
+        </button>
+        <button type="button" class="btn btn--ghost" (click)="close()" i18n="@@dialog.cancel">
+          Fortryd
+        </button>
+      </div>
+    }
+    @case ('unavailable') {
+      <!-- The hub could not be asked at all: say that, instead of claiming the
+           network is empty. -->
+      <p class="modal__text" i18n="@@addDevice.unavailable">
+        Vi kunne ikke spørge hjemmet om nye enheder lige nu. Prøv igen om et øjeblik.
+      </p>
+      <div class="modal__actions">
+        <button
+          type="button"
+          class="btn btn--primary grow"
+          (click)="search()"
+          i18n="@@addDevice.searchAgain"
+        >
+          Søg igen
+        </button>
+        <button type="button" class="btn btn--ghost" (click)="close()" i18n="@@dialog.cancel">
+          Fortryd
+        </button>
+      </div>
+    }
+    @case ('found') {
+      @if (devices().length === 1) {
+        <p class="modal__text" i18n="@@addDevice.foundOne">Vi fandt én ny enhed på dit wifi.</p>
+      } @else {
+        <p class="modal__text" i18n="@@addDevice.foundMany">
+          Vi fandt {{ devices().length }} nye enheder på dit wifi. Vælg den, du vil sætte op.
+        </p>
+      }
+
+      <div class="found-list">
+        @for (device of devices(); track device.mac) {
+          <button
+            type="button"
+            class="found-card"
+            [class.found-card--selected]="device.mac === selectedMac()"
+            [attr.aria-pressed]="device.mac === selectedMac()"
+            (click)="select(device.mac)"
+          >
+            <span class="found-card__text">
+              <span class="found-card__name">{{ deviceTitle(device) }}</span>
+              <span class="found-card__meta">{{ deviceMeta(device) }}</span>
+            </span>
+            @if (device.mac === selectedMac()) {
+              <span class="found-card__badge" i18n="@@addDevice.selected">Valgt</span>
+            }
+          </button>
+        }
+      </div>
+
+      @if (selected()) {
+        @if (store.rooms().length === 0) {
+          <!-- The device needs a room. Without one the Tilføj button would just
+               sit greyed out with no explanation. -->
+          <p class="modal__text" i18n="@@addDevice.noRooms">
+            Enheden skal bo i et rum, og du har ikke oprettet nogen endnu. Opret et rum, og find
+            enheden igen.
+          </p>
+          <div class="modal__actions">
+            <button type="button" class="btn btn--primary grow" (click)="openCreateRoom()">
+              <ng-container i18n="@@createRoom.title">Opret rum</ng-container>
+            </button>
+            <button type="button" class="btn btn--ghost" (click)="close()" i18n="@@dialog.cancel">
+              Fortryd
+            </button>
+          </div>
+        } @else {
+          <div class="fields">
+            <input
+              class="field"
+              type="text"
+              i18n-placeholder="@@addDevice.namePlaceholder"
+              placeholder="Giv den et navn"
+              [value]="name()"
+              (input)="onNameInput($event)"
+            />
+            <div class="select-wrap">
+              <select
+                class="field"
+                i18n-aria-label="@@addDevice.pickKind"
+                aria-label="Hvad er det for en enhed?"
+                (change)="onKindChange($event)"
+              >
+                <option value="" disabled [selected]="kind() === ''">
+                  <ng-container i18n="@@addDevice.pickKind">Hvad er det for en enhed?</ng-container>
+                </option>
+                @for (option of kinds; track option) {
+                  <option [value]="option" [selected]="option === kind()">
+                    {{ kindLabel(option) }}
+                  </option>
+                }
+              </select>
+            </div>
+            <div class="select-wrap">
+              <select
+                class="field"
+                i18n-aria-label="@@addDevice.pickRoom"
+                aria-label="Vælg rum"
+                (change)="onRoomChange($event)"
+              >
+                <option value="" disabled [selected]="roomId() === ''">
+                  <ng-container i18n="@@addDevice.pickRoom">Vælg rum</ng-container>
+                </option>
+                @for (room of store.rooms(); track room.id) {
+                  <option [value]="room.id" [selected]="room.id === roomId()">
+                    {{ room.name }}
+                  </option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="modal__actions">
+            <button
+              type="button"
+              class="btn btn--primary grow"
+              [disabled]="!canSubmit()"
+              (click)="submit()"
+              i18n="@@addDevice.submit"
+            >
+              Tilføj
+            </button>
+            <button type="button" class="btn btn--ghost" (click)="close()" i18n="@@dialog.cancel">
+              Fortryd
+            </button>
+          </div>
+        }
+      }
+    }
+  }
+</app-modal>

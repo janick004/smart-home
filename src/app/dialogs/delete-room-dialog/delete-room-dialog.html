@@ -1,0 +1,50 @@
+<app-modal [label]="room()?.name ?? ''" (closed)="close()">
+  <h2 class="modal__title" i18n="@@deleteRoom.title">Slet {{ room()?.name }}?</h2>
+
+  @if (deviceCount() === 0) {
+    <p class="modal__text" i18n="@@deleteRoom.emptyRoom">
+      Rummet er tomt, så der er ikke andet at flytte.
+    </p>
+  } @else if (needsTarget()) {
+    <p class="modal__text" i18n="@@deleteRoom.moveIntro">
+      Enhederne bliver ikke slettet. Vælg hvor de skal hen.
+    </p>
+    <div class="move-row">
+      <span class="move-row__label">{{ moveLabel() }}</span>
+      <div class="select-wrap">
+        <select
+          class="field"
+          i18n-aria-label="@@addDevice.pickRoom"
+          aria-label="Vælg rum"
+          [value]="moveToRoomId()"
+          (change)="onTargetChange($event)"
+        >
+          <option value="" disabled i18n="@@addDevice.pickRoom">Vælg rum</option>
+          @for (room of otherRooms(); track room.id) {
+            <option [value]="room.id">{{ room.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  } @else {
+    <p class="modal__text" i18n="@@deleteRoom.noOtherRooms">
+      Der er ingen andre rum, så {deviceCount(), plural, =1 {enheden} other {enhederne}} bliver
+      fjernet sammen med rummet. Du kan fortryde i 10 sekunder.
+    </p>
+  }
+
+  <div class="modal__actions">
+    <button
+      type="button"
+      class="btn btn--danger grow"
+      [disabled]="!canSubmit()"
+      (click)="submit()"
+      i18n="@@deleteRoom.submit"
+    >
+      Slet rum
+    </button>
+    <button type="button" class="btn btn--ghost" (click)="close()" i18n="@@dialog.cancel">
+      Fortryd
+    </button>
+  </div>
+</app-modal>

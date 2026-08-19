@@ -1,0 +1,41 @@
+<app-modal i18n-label="@@createRoom.title" label="Opret rum" (closed)="close()">
+  <h2 class="modal__title" i18n="@@createRoom.title">Opret rum</h2>
+  <div class="fields">
+    <input
+      class="field"
+      type="text"
+      i18n-placeholder="@@createRoom.namePlaceholder"
+      placeholder="Hvad hedder rummet?"
+      [value]="name()"
+      (input)="onNameInput($event)"
+    />
+  </div>
+  @if (suggestions().length > 0) {
+    <div class="chip-row">
+      @for (suggestion of suggestions(); track suggestion) {
+        <button type="button" class="chip" (click)="pickSuggestion(suggestion)">
+          {{ suggestion }}
+        </button>
+      }
+    </div>
+  }
+  @if (isDuplicate()) {
+    <p class="modal__text modal__text--alert" i18n="@@createRoom.duplicate">
+      Der findes allerede et rum med det navn.
+    </p>
+  }
+  <div class="modal__actions">
+    <button
+      type="button"
+      class="btn btn--primary grow"
+      [disabled]="!canSubmit()"
+      (click)="submit()"
+      i18n="@@createRoom.submit"
+    >
+      Opret
+    </button>
+    <button type="button" class="btn btn--ghost" (click)="close()" i18n="@@dialog.cancel">
+      Fortryd
+    </button>
+  </div>
+</app-modal>

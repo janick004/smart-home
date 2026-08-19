@@ -1,0 +1,32 @@
+@if (store.status() !== 'ready') {
+  <app-load-state [status]="store.status()" (retry)="reload()" />
+} @else if (store.rooms().length === 0) {
+  <app-empty-state (create)="openCreateRoom()" />
+} @else {
+  <div class="page">
+    <div class="grid grid--3">
+      @for (row of rows(); track row.room.id) {
+        <button
+          type="button"
+          class="tile"
+          [class.tile--warm]="row.warm"
+          [class.tile--alert]="row.alert"
+          [routerLink]="['/rum', row.room.id]"
+        >
+          <span class="tile__label">
+            @if (row.alert) {
+              <span class="tile__dot"></span>
+            }
+            {{ row.room.name }}
+          </span>
+          <span class="tile__state">{{ row.reading }}</span>
+          <span class="tile__meta">{{ row.countLabel }}</span>
+        </button>
+      }
+      <button type="button" class="tile create-tile" (click)="openCreateRoom()">
+        <span class="create-tile__plus" aria-hidden="true">+</span>
+        <span class="create-tile__text" i18n="@@createRoom.title">Opret rum</span>
+      </button>
+    </div>
+  </div>
+}

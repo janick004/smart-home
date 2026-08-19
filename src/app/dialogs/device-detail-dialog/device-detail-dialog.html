@@ -1,0 +1,161 @@
+<app-modal [label]="(device()?.name ?? '') + ' · ' + roomName()" (closed)="close()">
+  @if (device(); as device) {
+    <h2 class="modal__title">{{ device.name }} · {{ roomName() }}</h2>
+
+    @if (!device.online) {
+      <!-- Help rather than error codes (mockup 05). -->
+      <p class="modal__text" i18n="@@troubleshoot.intro">
+        Enheden svarer ikke. Tjek at den har strøm og er på husets wifi.
+      </p>
+      <div class="steps">
+        <div class="step" i18n="@@troubleshoot.step1">
+          1 · Har den strøm? Lyser der noget på den?
+        </div>
+        <div class="step" i18n="@@troubleshoot.step2">2 · Er den inden for husets wifi?</div>
+        <div class="step" i18n="@@troubleshoot.step3">3 · Tag strømmen af i 10 sekunder</div>
+      </div>
+      @if (pingState() === 'failed') {
+        <p class="modal__text modal__text--alert" i18n="@@troubleshoot.stillSilent">
+          Stadig intet svar. Prøv trinnene ovenfor og søg igen.
+        </p>
+      }
+      <div class="modal__actions">
+        <button
+          type="button"
+          class="btn btn--primary grow"
+          [disabled]="pingState() === 'pinging'"
+          (click)="tryFindAgain()"
+        >
+          @if (pingState() === 'pinging') {
+            <ng-container i18n="@@troubleshoot.searching">Søger…</ng-container>
+          } @else {
+            <ng-container i18n="@@troubleshoot.tryFind">Prøv at finde den igen</ng-container>
+          }
+        </button>
+        <button type="button" class="btn btn--ghost" (click)="close()" i18n="@@troubleshoot.later">
+          Senere
+        </button>
+      </div>
+    } @else {
+      @if (device.kind === 'lamp') {
+        <div class="reading-row">
+          <span class="reading">{{ lampState(device) }}</span>
+        </div>
+        <app-toggle-switch
+          [checked]="device.on"
+          [label]="toggleLabel(device.name)"
+          (toggled)="toggleLamp(device.id)"
+        />
+      } @else if (device.kind === 'thermometer') {
+        <div class="reading-row">
+          @if (device.temperature !== null) {
+            <span class="reading reading--num">{{ device.temperature }}°</span>
+          }
+          @if (device.humidity !== null) {
+            <span class="tile__reading-sub">{{ device.humidity }} %</span>
+          }
+          @if (device.temperature === null && device.humidity === null) {
+            <span class="reading" i18n="@@device.noReadings">Ingen målinger endnu</span>
+          }
+        </div>
+      } @else if (device.kind === 'humidity') {
+        <div class="reading-row">
+          @if (device.humidity !== null) {
+            <span class="reading reading--num">{{ device.humidity }} %</span>
+          } @else {
+            <span class="reading" i18n="@@device.noReadings">Ingen målinger endnu</span>
+          }
+        </div>
+      } @else {
+        <div class="reading-row">
+          <span class="reading">{{ motionState(device) }}</span>
+        </div>
+        @if (lastMotionText(device); as lastMotion) {
+          <p class="modal__text">{{ lastMotion }}</p>
+        }
+      }
+
+      @if (device.updatedAt; as updatedAt) {
+        <p
+          class="updated"
+          i18n-title="hover title with the precise time@@device.updatedExactTitle"
+          title="Præcist tidspunkt: {{ updatedExact(updatedAt) }}"
+        >
+          @if (device.updatedFrom === 'data') {
+            <ng-container i18n="@@device.updatedAgo">
+              opdateret {{ updatedRelative(updatedAt) }}
+            </ng-container>
+          } @else {
+            <!-- Only a heartbeat: the device is alive but has not sent data. -->
+            <ng-container i18n="@@device.lastSeenAgo">
+              sidst set {{ updatedRelative(updatedAt) }}
+            </ng-container>
+          }
+        </p>
+      } @else {
+        <p class="updated" i18n="@@device.neverReported">har ikke sendt data endnu</p>
+      }
+
+      @if (sparkPoints(); as points) {
+        <div class="spark">
+          <span class="spark__label" i18n="@@device.last24Hours">De sidste 24 timer</span>
+          <svg
+            class="spark__svg"
+            viewBox="0 0 240 64"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <polyline
+              [attr.points]="points"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              vector-effect="non-scaling-stroke"
+            />
+          </svg>
+        </div>
+      } @else if (expectsHistory()) {
+        <div class="spark">
+          <span class="spark__label" i18n="@@device.last24Hours">De sidste 24 timer</span>
+          <span class="spark__empty" i18n="@@device.historyTooShort">
+            Der er endnu ikke målinger nok til en kurve.
+          </span>
+        </div>
+      }
+
+      <!-- Technical details folded away (mockup 05). -->
+      <div class="tech">
+        <button
+          type="button"
+          class="tech__head"
+          [attr.aria-expanded]="expanded()"
+          (click)="toggleExpanded()"
+        >
+          <span i18n="@@device.techInfo">Tekniske oplysninger</span>
+          <span aria-hidden="true">{{ expanded() ? '▴' : '▾' }}</span>
+        </button>
+        @if (expanded()) {
+          <div class="tech__grid">
+            <span class="tech__key" i18n="@@device.techId">Enheds-id</span>
+            <span>{{ device.id }}</span>
+            <span class="tech__key" i18n="@@device.techMac">MAC-adresse</span>
+            <span>{{ device.mac ?? unknownValue }}</span>
+            <span class="tech__key" i18n="@@device.techIp">IP</span>
+            <span>{{ device.ip ?? unknownValue }}</span>
+            <span class="tech__key" i18n="@@device.techRegistered">Registreret</span>
+            <span>{{
+              device.registeredAt ? updatedExact(device.registeredAt) : unknownValue
+            }}</span>
+          </div>
+        }
+      </div>
+    }
+  } @else {
+    <p class="modal__text" i18n="@@device.gone">Enheden findes ikke længere.</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--primary grow" (click)="close()" i18n="@@dialog.close">
+        Luk
+      </button>
+    </div>
+  }
+</app-modal>

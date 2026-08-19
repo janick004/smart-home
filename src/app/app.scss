@@ -1,0 +1,98 @@
+.frame {
+  min-height: var(--app-h);
+  display: flex;
+  flex-direction: column;
+  /* No max-width: the canvas is a fixed 1366px, so a narrower content box would
+     only leave dead space in the sides. The padding is the margin, and it is
+     kept in step with the top/bottom spacing below. */
+  padding: 0 40px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 36px 0 28px;
+}
+
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.topnav a {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-3);
+  text-decoration: none;
+}
+
+.topnav a:hover {
+  color: var(--text-2);
+}
+
+.topnav a.is-active {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.topbar__spacer {
+  flex: 1;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The <router-outlet> element itself must not take space — only the routed page.
+   The routed page's own "fill the shell" rule cannot live here: the router
+   creates that element, so it carries no encapsulation attribute and
+   encapsulated selectors never match it. See .content > * in styles.scss. */
+.content > router-outlet {
+  flex: none;
+}
+
+.add-menu {
+  position: relative;
+}
+
+.add-menu__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  cursor: default;
+}
+
+.add-menu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 30;
+  min-width: 220px;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.8);
+}
+
+.add-menu__panel button {
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text);
+}
+
+.add-menu__panel button:hover {
+  background: var(--surface);
+}

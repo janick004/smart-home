@@ -1,1 +1,716 @@
-/* You can add global styles to this file, and also import other style files */
+/* Design tokens and shared UI classes for Smart hjem.
+   All values come from the mockup: dark tone, big tiles, warm = on, red = needs attention. */
+
+:root {
+  --bg: #0b0c0e;
+  --surface: #17191e;
+  --surface-2: #23262c;
+  --text: #ffffff;
+  --text-2: #939cad;
+  --text-3: #78808f;
+  --knob-off: #6d7380;
+  --warm-bg: oklch(0.36 0.05 95);
+  --warm-text: oklch(0.94 0.07 95);
+  --warm-label: oklch(0.74 0.05 95);
+  --warm-track: oklch(0.85 0.1 92);
+  --alert-bg: oklch(0.38 0.09 28);
+  --alert-text: oklch(0.92 0.06 45);
+  --alert-label: oklch(0.88 0.07 45);
+  --alert-strong: oklch(0.8 0.12 45);
+  --radius-tile: 26px;
+  --radius-inner: 20px;
+  --radius-control: 16px;
+  --radius-device: 70px;
+
+  /* The design canvas: an iPad in landscape. The app is ALWAYS drawn on this
+     canvas and scaled to fit the window — there is no portrait version and no
+     phone layout. See layout/tablet-frame. */
+  --canvas-w: 1366px;
+  --canvas-h: 1024px;
+  --frame-backdrop: #0e1116;
+
+  /* The size of the surface the app is rendered on. The tablet frame re-points
+     these at the iPad canvas, so anything sized against "the screen" follows
+     the device and not the browser window. */
+  --app-w: var(--canvas-w);
+  --app-h: var(--canvas-h);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+app-root {
+  display: block;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--text-2);
+  outline-offset: 2px;
+}
+
+/* ---- Tiles ---- */
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: var(--radius-tile);
+  background: var(--surface);
+  padding: 30px 32px;
+  color: var(--text);
+  min-height: 0;
+  min-width: 0;
+}
+
+button.tile {
+  width: 100%;
+  transition: filter 0.15s;
+}
+
+button.tile:hover {
+  filter: brightness(1.12);
+}
+
+.tile--warm {
+  background: var(--warm-bg);
+}
+
+.tile--alert {
+  background: var(--alert-bg);
+}
+
+.tile__label {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tile--warm .tile__label {
+  color: var(--warm-label);
+}
+
+.tile--alert .tile__label {
+  color: var(--alert-label);
+}
+
+.tile__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--alert-strong);
+  flex: none;
+}
+
+/* Big numeric reading, e.g. 21° */
+.tile__reading {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.tile__reading-sub {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Word state, e.g. Tændt / Slukket */
+.tile__state {
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text);
+}
+
+.tile--warm .tile__state,
+.tile--warm .tile__reading {
+  color: var(--warm-text);
+}
+
+/* Device-name headline on the Enheder grid */
+.tile__title {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.tile--warm .tile__title {
+  color: var(--warm-text);
+}
+
+/* Big sentence headline, e.g. "3 lamper er tændt" */
+.tile__headline {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text);
+  margin: 0;
+}
+
+.tile--warm .tile__headline {
+  color: var(--warm-text);
+}
+
+.tile__alert-title {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.tile__alert-text {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--alert-label);
+}
+
+.tile__meta {
+  margin-top: auto;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-2);
+}
+
+.tile--warm .tile__meta {
+  color: var(--warm-text);
+  font-weight: 600;
+}
+
+.tile--alert .tile__meta {
+  color: var(--alert-label);
+  font-weight: 600;
+}
+
+.tile__bottom {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.tile__switch-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.tile--warm .tile__switch-label {
+  color: var(--warm-text);
+}
+
+/* A tile that supports click + long-press and may hold its own controls.
+   A stretched, invisible button covers the tile; controls sit above it. */
+.tile--pressable {
+  position: relative;
+  transition: filter 0.15s;
+  /* Long press is the primary affordance — keep iOS from hijacking it for
+     text selection or the callout, while leaving vertical scroll alone. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: pan-y;
+}
+
+.tile--pressable:hover {
+  filter: brightness(1.12);
+}
+
+.tile--pressable > * {
+  position: relative;
+  pointer-events: none;
+}
+
+.tile--pressable > .tile__hit {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: auto;
+  z-index: 0;
+}
+
+.tile--pressable > .tile__bottom {
+  pointer-events: auto;
+}
+
+.reading-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Keyboard path to the long-press menu: hidden until focused, then a small badge. */
+.tile__actions {
+  pointer-events: auto;
+}
+
+.tile__actions:focus-visible {
+  width: auto;
+  height: auto;
+  margin: 0;
+  inset: 14px 14px auto auto;
+  padding: 10px 14px;
+  overflow: visible;
+  clip-path: none;
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  z-index: 1;
+}
+
+/* The Enheder grid flips the hierarchy: status line above the room label (mockup 03). */
+.tile--device .tile__label {
+  font-size: 16px;
+}
+
+.tile--device .tile__meta {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* ---- Page layout ---- */
+
+/* Routed pages fill the shell so the tile grid reaches the bottom of the
+   tablet canvas. This rule is global on purpose: the router creates the page
+   element outside App's template, so App's encapsulated CSS cannot reach it. */
+.content > *:not(router-outlet) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  /* flex:1 fills the routed host; min-height keeps it working if a page is
+     ever rendered outside the shell. */
+  flex: 1;
+  min-height: 100%;
+}
+
+.page__hint {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-3);
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  grid-auto-rows: minmax(220px, 1fr);
+}
+
+.grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: minmax(240px, 1fr);
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+/* ---- Buttons ---- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-control);
+  padding: 19px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.btn--primary {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.btn--ghost {
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.btn--danger {
+  background: var(--alert-bg);
+  color: var(--alert-text);
+  font-weight: 700;
+}
+
+.grow {
+  flex: 1;
+}
+
+/* Small top-bar buttons */
+.btn--nav {
+  border-radius: 14px;
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.btn--nav-primary {
+  border-radius: 14px;
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Quiet inline text actions, e.g. Omdøb / Slet rum */
+.text-action {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-3);
+}
+
+.text-action:hover {
+  color: var(--text);
+}
+
+/* ---- Form fields ---- */
+
+.field {
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  padding: 18px 22px;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.field::placeholder {
+  color: var(--text-3);
+}
+
+.select-wrap {
+  position: relative;
+}
+
+.select-wrap::after {
+  content: '▾';
+  position: absolute;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+select.field {
+  appearance: none;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chip-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 12px 18px;
+  border-radius: 22px;
+  background: var(--surface-2);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-2);
+}
+
+.chip:hover {
+  color: var(--text);
+}
+
+/* ---- Sheet menu items (long-press menu) ---- */
+
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: 18px 4px;
+  border-top: 1px solid var(--surface-2);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text);
+}
+
+.menu-item:hover {
+  color: var(--text-2);
+}
+
+.menu-item--danger {
+  color: var(--alert-strong);
+}
+
+.menu-item--danger:hover {
+  color: var(--alert-text);
+}
+
+/* ---- Modal ---- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.62);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 40;
+}
+
+.modal {
+  width: min(560px, 100%);
+  max-height: min(760px, calc(0.92 * var(--app-h)));
+  overflow: auto;
+  border-radius: var(--radius-tile);
+  background: var(--surface);
+  padding: 30px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  outline: none;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.modal__text {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.modal__text--alert {
+  color: var(--alert-text);
+}
+
+.modal__actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 12px;
+}
+
+/* ---- Toasts ---- */
+
+.toasts {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 28px;
+  z-index: 60;
+  width: min(560px, calc(var(--app-w) - 48px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toast {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-inner);
+  background: var(--surface-2);
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 18px 40px -20px rgb(0 0 0 / 0.8);
+}
+
+.toast--alert {
+  background: var(--alert-bg);
+}
+
+.toast__msg {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.toast--alert .toast__msg {
+  color: var(--alert-text);
+}
+
+/* Per the mockup, the alert banner's action is quiet inline text, not a white pill. */
+.toast--alert .toast__action {
+  background: transparent;
+  padding: 14px 0;
+  color: var(--alert-text);
+}
+
+.toast__action {
+  flex: none;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--bg);
+}
+
+.toast__countdown {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: var(--text-3);
+  transform-origin: left;
+  animation-name: toast-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.toast--alert .toast__countdown {
+  background: var(--alert-label);
+}
+
+.toast--paused .toast__countdown {
+  animation-play-state: paused;
+}
+
+@keyframes toast-countdown {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* ---- Empty state ---- */
+
+.empty {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.empty__tile {
+  width: min(560px, 100%);
+  gap: 18px;
+}
+
+.empty__hint {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-3);
+}
+
+.empty__title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.empty__text {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.empty__cta {
+  margin-top: 12px;
+}

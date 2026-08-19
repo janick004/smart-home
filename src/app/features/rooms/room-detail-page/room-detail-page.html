@@ -1,0 +1,120 @@
+@if (store.status() !== 'ready') {
+  <app-load-state [status]="store.status()" (retry)="reload()" />
+} @else if (room(); as room) {
+  <div class="page">
+    <div class="room-head">
+      <a
+        class="room-head__back"
+        routerLink="/rum"
+        i18n-aria-label="@@roomDetail.backAria"
+        aria-label="Alle rum"
+        >←</a
+      >
+      <h1 class="room-head__name">{{ room.name }}</h1>
+      <span class="room-head__count">{{ countLabel() }}</span>
+      <span class="room-head__spacer"></span>
+      <button type="button" class="text-action" (click)="openRename()" i18n="@@roomDetail.rename">
+        Omdøb
+      </button>
+      <button type="button" class="text-action" (click)="openDelete()" i18n="@@roomDetail.delete">
+        Slet rum
+      </button>
+    </div>
+
+    @if (devices().length === 0) {
+      <div class="grid grid--2">
+        <section class="tile">
+          <span class="tile__label" i18n="@@roomDetail.emptyLabel">Tomt rum</span>
+          <span class="tile__state" i18n="@@roomDetail.emptyTitle">Ingen enheder endnu</span>
+          <div class="tile__bottom">
+            <button type="button" class="btn btn--primary" (click)="openAddDevice()">
+              <ng-container i18n="@@addDevice.title">Tilføj enhed</ng-container>
+            </button>
+          </div>
+        </section>
+      </div>
+    } @else {
+      <div class="grid grid--2">
+        @for (device of devices(); track device.id) {
+          <div
+            class="tile tile--pressable"
+            [class.tile--warm]="device.kind === 'lamp' && device.on && device.online"
+            [class.tile--alert]="!device.online"
+            appLongPress
+            (appLongPress)="openMenu(device.id)"
+          >
+            <button type="button" class="tile__hit" (click)="openDetail(device.id)">
+              <span class="visually-hidden" i18n="@@tile.detailsFor">
+                Detaljer for {{ device.name }}
+              </span>
+            </button>
+            <button
+              type="button"
+              class="visually-hidden tile__actions"
+              aria-haspopup="dialog"
+              (click)="openMenu(device.id)"
+              i18n="@@tile.actionsFor"
+            >
+              Handlinger for {{ device.name }}
+            </button>
+            <span class="tile__label">{{ device.name }}</span>
+
+            @if (!device.online) {
+              <span class="tile__state" i18n="@@device.notResponding">Svarer ikke</span>
+              <span class="tile__meta" i18n="@@home.alertCta">Vis mig hvad jeg gør →</span>
+            } @else {
+              @if (device.kind === 'lamp') {
+                <span class="tile__state">{{ lampState(device) }}</span>
+                <div class="tile__bottom">
+                  <app-toggle-switch
+                    [checked]="device.on"
+                    [label]="toggleLabel(device.name)"
+                    (toggled)="toggleLamp(device.id)"
+                  />
+                </div>
+              } @else if (device.kind === 'thermometer') {
+                @if (device.temperature !== null || device.humidity !== null) {
+                  <span class="reading-row">
+                    @if (device.temperature !== null) {
+                      <span class="tile__reading">{{ device.temperature }}°</span>
+                    }
+                    @if (device.humidity !== null) {
+                      <span class="tile__reading-sub">{{ device.humidity }} %</span>
+                    }
+                  </span>
+                } @else {
+                  <span class="tile__state" i18n="@@device.noReadings">Ingen målinger endnu</span>
+                }
+                <span class="tile__meta" i18n="@@device.seeLast24h">Se de sidste 24 timer →</span>
+              } @else if (device.kind === 'humidity') {
+                @if (device.humidity !== null) {
+                  <span class="tile__reading">{{ device.humidity }} %</span>
+                } @else {
+                  <span class="tile__state" i18n="@@device.noReadings">Ingen målinger endnu</span>
+                }
+                <span class="tile__meta" i18n="@@device.seeLast24h">Se de sidste 24 timer →</span>
+              } @else {
+                <span class="tile__state">{{ motionState(device) }}</span>
+                @if (device.lastMotionAt; as lastMotion) {
+                  <span class="tile__meta" i18n="@@roomDetail.lastMotion">
+                    Sidste bevægelse {{ motionTime(lastMotion) }}
+                  </span>
+                }
+              }
+            }
+          </div>
+        }
+      </div>
+      <p class="page__hint" i18n="@@tile.longPressHint">
+        Tryk og hold på en flise for at omdøbe, flytte til andet rum eller fjerne enheden
+      </p>
+    }
+  </div>
+} @else {
+  <div class="page">
+    <p class="missing">
+      <ng-container i18n="@@roomDetail.missing">Rummet findes ikke længere.</ng-container>
+      <a routerLink="/rum" i18n="@@roomDetail.seeAll">Se alle rum</a>
+    </p>
+  </div>
+}
