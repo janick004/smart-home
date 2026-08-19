@@ -1,0 +1,27 @@
+trigger:
+  - main
+
+pool:
+  name: SmartHome
+  demands:
+    - Agent.Name -equals SmartHome-Pi
+
+jobs:
+- job: UpdateFrontend
+  displayName: 'Updating Frontend'
+
+  steps:
+  - script: |
+      cd ~/SmartHome-Frontend
+
+      echo "Updating frontend repository..."
+      git pull origin main
+
+      echo "Installing dependencies..."
+      npm ci
+
+      echo "Building Angular frontend..."
+      npm run build
+
+      echo "Frontend build complete."
+    displayName: 'Build SmartHome Frontend'
