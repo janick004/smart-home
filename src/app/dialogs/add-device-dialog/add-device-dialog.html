@@ -1,62 +1,108 @@
 <app-modal i18n-label="@@addDevice.title" label="Tilføj enhed" (closed)="close()">
-  <h2 class="modal__title" i18n="@@addDevice.title">Tilføj enhed</h2>
+  @if (selected(); as device) {
+    <h2 class="modal__title">{{ displayName(device) }}</h2>
+    <p class="modal__text">{{ device.ssid }} · {{ device.mac }}</p>
 
-  @switch (phase()) {
-    @case ('searching') {
-      <div class="searching">
-        <span class="searching__pulse" aria-hidden="true"></span>
-        <p class="modal__text" i18n="@@addDevice.searching">Søger efter nye enheder på dit wifi…</p>
-      </div>
-    }
-    @case ('none') {
-      <p class="modal__text" i18n="@@addDevice.noneFound">
-        Vi fandt ingen nye enheder. Tjek at enheden har strøm, og at lyset lyser.
-      </p>
-    }
-    @case ('unavailable') {
-      <!-- The hub could not be asked at all: say that, instead of claiming the
-           air is empty. -->
-      <p class="modal__text" i18n="@@addDevice.unavailable">
-        Vi kunne ikke spørge hjemmet om nye enheder lige nu. Prøv igen om et øjeblik.
-      </p>
-    }
-    @case ('found') {
-      @if (devices().length === 1) {
-        <p class="modal__text" i18n="@@addDevice.foundOne">Vi fandt én ny enhed.</p>
-      } @else {
-        <p class="modal__text" i18n="@@addDevice.foundMany">
-          Vi fandt {{ devices().length }} nye enheder.
-        </p>
+    <ol class="steps">
+      @for (index of steps; track index) {
+        <li class="steps__item" [class.steps__item--done]="step() >= index">
+          <span class="steps__dot" aria-hidden="true"></span>
+          <span>{{ stepLabel(index) }}</span>
+        </li>
       }
-      <div class="found-list">
-        @for (device of devices(); track device.mac) {
-          <div class="found-card">
-            <span class="found-card__text">
-              <span class="found-card__name">{{ device.ssid }}</span>
-              <span class="found-card__meta">{{ device.mac }}</span>
-            </span>
-            <span class="found-card__signal">
-              {{ signalLabel(device.signalStrength) }}<br />{{ device.signalStrength }} dBm
-            </span>
-          </div>
-        }
-      </div>
-    }
-  }
+    </ol>
 
-  <div class="modal__actions">
-    @if (phase() !== 'searching') {
+    <!-- Says out loud that nothing happened. A screen that walks through three
+         steps and then goes quiet is indistinguishable from one that worked. -->
+    <p class="mockup">
+      <span class="mockup__tag" i18n="@@addDevice.mockupTag">Attrap</span><br />
+      @if (done) {
+        <ng-container i18n="@@addDevice.mockupDone">
+          Sådan kommer det til at se ud. Der er ikke sendt noget til enheden — den står stadig med
+          sit eget wifi, og hjemmet ved ikke at den findes.
+        </ng-container>
+      } @else {
+        <ng-container i18n="@@addDevice.mockupRunning">
+          Skærmen her er en attrap. Der bliver ikke sendt noget til enheden.
+        </ng-container>
+      }
+    </p>
+
+    <div class="modal__actions">
       <button
         type="button"
         class="btn btn--primary grow"
-        (click)="search()"
-        i18n="@@addDevice.searchAgain"
+        (click)="back()"
+        i18n="@@addDevice.backToList"
       >
-        Søg igen
+        Tilbage til listen
       </button>
+      <button type="button" class="btn btn--ghost" (click)="close()" i18n="@@dialog.close">
+        Luk
+      </button>
+    </div>
+  } @else {
+    <h2 class="modal__title" i18n="@@addDevice.title">Tilføj enhed</h2>
+
+    @switch (phase()) {
+      @case ('searching') {
+        <div class="searching">
+          <span class="searching__pulse" aria-hidden="true"></span>
+          <p class="modal__text" i18n="@@addDevice.searching">
+            Søger efter nye enheder på dit wifi…
+          </p>
+        </div>
+      }
+      @case ('none') {
+        <p class="modal__text" i18n="@@addDevice.noneFound">
+          Vi fandt ingen nye enheder. Tjek at enheden har strøm, og at lyset lyser.
+        </p>
+      }
+      @case ('unavailable') {
+        <!-- The hub could not be asked at all: say that, instead of claiming the
+             air is empty. -->
+        <p class="modal__text" i18n="@@addDevice.unavailable">
+          Vi kunne ikke spørge hjemmet om nye enheder lige nu. Prøv igen om et øjeblik.
+        </p>
+      }
+      @case ('found') {
+        @if (devices().length === 1) {
+          <p class="modal__text" i18n="@@addDevice.foundOne">Vi fandt én ny enhed.</p>
+        } @else {
+          <p class="modal__text" i18n="@@addDevice.foundMany">
+            Vi fandt {{ devices().length }} nye enheder.
+          </p>
+        }
+        <div class="found-list">
+          @for (device of devices(); track device.mac) {
+            <button type="button" class="found-card" (click)="open(device)">
+              <span class="found-card__text">
+                <span class="found-card__name">{{ displayName(device) }}</span>
+                <span class="found-card__meta">{{ device.mac }}</span>
+              </span>
+              <span class="found-card__signal">
+                {{ signalLabel(device.signalStrength) }}<br />{{ device.signalStrength }} dBm
+              </span>
+            </button>
+          }
+        </div>
+      }
     }
-    <button type="button" class="btn btn--ghost grow" (click)="close()" i18n="@@dialog.close">
-      Luk
-    </button>
-  </div>
+
+    <div class="modal__actions">
+      @if (phase() !== 'searching') {
+        <button
+          type="button"
+          class="btn btn--primary grow"
+          (click)="search()"
+          i18n="@@addDevice.searchAgain"
+        >
+          Søg igen
+        </button>
+      }
+      <button type="button" class="btn btn--ghost grow" (click)="close()" i18n="@@dialog.close">
+        Luk
+      </button>
+    </div>
+  }
 </app-modal>

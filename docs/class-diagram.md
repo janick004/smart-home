@@ -261,6 +261,8 @@ classDiagram
         <<Component>>
         +phase: Signal~SearchPhase~
         +devices: Signal~DiscoveredDevice[]~
+        +selected: Signal~DiscoveredDevice?~
+        +step: Signal~number~
     }
     class CreateRoomDialog {
         <<Component>>

@@ -5,7 +5,7 @@ import { DeviceDiscoveryService, DiscoveryResult } from '../../core/discovery/di
 import { DialogService } from '../../core/dialog/dialog';
 import { DiscoveredDevice } from '../../core/models';
 import { SmartHomeApiStub } from '../../testing/api-stub';
-import { AddDeviceDialog } from './add-device-dialog';
+import { AddDeviceDialog, SETUP_STEP_MS } from './add-device-dialog';
 
 function found(ssid: string, mac: string, signalStrength: number): DiscoveredDevice {
   return { ssid, mac, signalStrength };
@@ -35,6 +35,8 @@ describe('AddDeviceDialog', () => {
         provideZonelessChangeDetection(),
         { provide: SmartHomeApi, useValue: api },
         { provide: DeviceDiscoveryService, useValue: discovery },
+        // Real stepping, no waiting.
+        { provide: SETUP_STEP_MS, useValue: 1 },
       ],
     });
     const fixture = TestBed.createComponent(AddDeviceDialog);
@@ -46,22 +48,36 @@ describe('AddDeviceDialog', () => {
     return ((fixture.nativeElement as HTMLElement).textContent ?? '').replace(/\s+/g, ' ').trim();
   }
 
-  function buttonLabels(fixture: ComponentFixture<AddDeviceDialog>): string[] {
-    return Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('button'),
-    ).map((button) => (button.textContent ?? '').trim());
-  }
-
   beforeEach(() => {
     api = new SmartHomeApiStub();
     discovery = new DiscoveryStub();
   });
 
-  it('lists what the scan found: network name and MAC address', async () => {
+  it('lists what the scan found: name and MAC address', async () => {
     const fixture = await render();
-    expect(text(fixture)).toContain('SmartHome-5A7C');
     expect(text(fixture)).toContain('A4:CF:12:AA:01:02');
     expect(text(fixture)).toContain('-42 dBm');
+  });
+
+  it('drops the SmartHome- prefix: every row would start with it otherwise', async () => {
+    discovery.result = {
+      status: 'found',
+      devices: [found('SmartHome-TemperatureSensor', 'AA:BB:CC:00:00:01', -35)],
+    };
+    const fixture = await render();
+    const name = (fixture.nativeElement as HTMLElement).querySelector('.found-card__name');
+    expect(name?.textContent?.trim()).toBe('TemperatureSensor');
+  });
+
+  it('keeps the name when the prefix is all there is', async () => {
+    discovery.result = {
+      status: 'found',
+      devices: [found('SmartHome', 'AA:BB:CC:00:00:01', -35)],
+    };
+    const fixture = await render();
+    // Stripping would leave a blank row, which tells the user nothing.
+    const name = (fixture.nativeElement as HTMLElement).querySelector('.found-card__name');
+    expect(name?.textContent?.trim()).toBe('SmartHome');
   });
 
   it('puts the strongest signal first — that is the device in your hand', async () => {
@@ -77,7 +93,7 @@ describe('AddDeviceDialog', () => {
     const names = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('.found-card__name'),
     ).map((element) => element.textContent?.trim());
-    expect(names).toEqual(['SmartHome-Taet-Paa', 'SmartHome-Midt', 'SmartHome-Langt-Vaek']);
+    expect(names).toEqual(['Taet-Paa', 'Midt', 'Langt-Vaek']);
   });
 
   it('turns dBm into words, because -84 means nothing to most people', async () => {
@@ -129,12 +145,59 @@ describe('AddDeviceDialog', () => {
     expect(text(fixture)).not.toContain('ingen nye enheder');
   });
 
-  it('offers nothing but looking — no name, no room, no add button', async () => {
+  it('asks for nothing on the list — no name, no room, no form', async () => {
     const fixture = await render();
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('input')).toBeNull();
     expect(host.querySelector('select')).toBeNull();
-    expect(buttonLabels(fixture)).toEqual(['Søg igen', 'Luk']);
+  });
+
+  describe('the pretend setup screen', () => {
+    async function openFirst(): Promise<ComponentFixture<AddDeviceDialog>> {
+      const fixture = await render();
+      host(fixture).querySelector<HTMLElement>('.found-card')?.click();
+      await fixture.whenStable();
+      return fixture;
+    }
+
+    it('opens when a row is clicked, showing the full ssid and MAC', async () => {
+      const fixture = await openFirst();
+      expect(text(fixture)).toContain('SmartHome-5A7C');
+      expect(text(fixture)).toContain('A4:CF:12:AA:01:02');
+      expect(host(fixture).querySelector('.steps')).not.toBeNull();
+    });
+
+    it('says it is a mockup, both while running and when it finishes', async () => {
+      const fixture = await openFirst();
+      expect(text(fixture)).toContain('Attrap');
+      expect(text(fixture)).toContain('bliver ikke sendt noget til enheden');
+
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      await fixture.whenStable();
+
+      // Never claims the device was set up.
+      expect(text(fixture)).toContain('ikke sendt noget til enheden');
+      expect(text(fixture)).not.toContain('Enheden er sat op');
+    });
+
+    it('walks through every step', async () => {
+      const fixture = await openFirst();
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      await fixture.whenStable();
+      const done = host(fixture).querySelectorAll('.steps__item--done').length;
+      expect(done).toBe(host(fixture).querySelectorAll('.steps__item').length);
+    });
+
+    it('goes back to the list', async () => {
+      const fixture = await openFirst();
+      const back = Array.from(host(fixture).querySelectorAll<HTMLElement>('button')).find(
+        (button) => (button.textContent ?? '').includes('Tilbage'),
+      );
+      back?.click();
+      await fixture.whenStable();
+      expect(host(fixture).querySelector('.found-card')).not.toBeNull();
+      expect(host(fixture).querySelector('.steps')).toBeNull();
+    });
   });
 
   it('scans again on demand', async () => {

@@ -97,6 +97,14 @@ Konventioner appen regner med i databasen:
 
    Tre konsekvenser appen skal leve med, og gør:
 
+   - **Navnets `SmartHome`-præfiks vises ikke.** API'et filtrerer på det, så det
+     står på hver eneste række og siger ingenting. `SmartHome-TemperatureSensor`
+     vises som `TemperatureSensor`; er præfikset det eneste der er, vises navnet
+     uafkortet frem for en blank række.
+   - **Et klik åbner en ATTRAP.** Opsætnings-skærmen viser hvad der KOMMER til at
+     ske, men sender ingenting — der findes ikke noget endpoint til det endnu.
+     Skærmen siger det selv, både undervejs og til sidst. Fjern den markering
+     samtidig med at der kommer rigtig opsætning, ikke før.
    - **Der er ingen IP, ingen type og ingen historik.** Enheden er ikke på
      hjemmenettet — den udsender sit eget net. Alt hvad vi ved, står i navnet og
      signalet. Derfor viser dialogen kun listen: der er ikke noget at registrere
