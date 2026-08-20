@@ -167,17 +167,22 @@ describe('AddDeviceDialog', () => {
       expect(host(fixture).querySelector('.steps')).not.toBeNull();
     });
 
-    it('says it is a mockup, both while running and when it finishes', async () => {
+    it('says it is a preview, both while running and when it finishes', async () => {
       const fixture = await openFirst();
-      expect(text(fixture)).toContain('Attrap');
-      expect(text(fixture)).toContain('bliver ikke sendt noget til enheden');
+      expect(text(fixture)).toContain('Preview');
+      expect(text(fixture)).toContain('ikke sendt noget til enheden');
 
       await new Promise((resolve) => setTimeout(resolve, 40));
       await fixture.whenStable();
 
-      // Never claims the device was set up.
+      // The wording must not change into something that reads as success once
+      // the steps finish.
+      expect(text(fixture)).toContain('preview af hvordan det kan se ud');
       expect(text(fixture)).toContain('ikke sendt noget til enheden');
       expect(text(fixture)).not.toContain('Enheden er sat op');
+      // Its own element, so the styling has something to hang on. The colour
+      // itself is a browser concern — jsdom has no stylesheet loaded.
+      expect(host(fixture).querySelector('.mockup')).not.toBeNull();
     });
 
     it('walks through every step', async () => {

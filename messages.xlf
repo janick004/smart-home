@@ -63,7 +63,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">45,47</context>
+          <context context-type="linenumber">39,41</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/devices/devices-page/devices-page.html</context>
@@ -233,43 +233,36 @@
         </context-group>
         <note priority="1" from="description">error toast; the device reappears</note>
       </trans-unit>
-      <trans-unit id="addDevice.mockupTag" datatype="html">
-        <source>Attrap</source>
+      <trans-unit id="addDevice.previewTag" datatype="html">
+        <source>Preview</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">18,20</context>
+          <context context-type="linenumber">19,20</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="addDevice.mockupDone" datatype="html">
-        <source> Sådan kommer det til at se ud. Der er ikke sendt noget til enheden — den står stadig med sit eget wifi, og hjemmet ved ikke at den findes. </source>
+      <trans-unit id="addDevice.previewNotice" datatype="html">
+        <source> Dette er et preview af hvordan det kan se ud. Der er ikke sendt noget til enheden. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
           <context context-type="linenumber">21,23</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="addDevice.mockupRunning" datatype="html">
-        <source> Skærmen her er en attrap. Der bliver ikke sendt noget til enheden. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">26,28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.backToList" datatype="html">
         <source> Tilbage til listen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">38,40</context>
+          <context context-type="linenumber">32,34</context>
         </context-group>
       </trans-unit>
       <trans-unit id="dialog.close" datatype="html">
         <source> Luk </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">41,43</context>
+          <context context-type="linenumber">35,37</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">104,106</context>
+          <context context-type="linenumber">98,100</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/device-detail-dialog/device-detail-dialog.html</context>
@@ -280,49 +273,49 @@
         <source> Søger efter nye enheder på dit wifi… </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">52,54</context>
+          <context context-type="linenumber">46,48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.noneFound" datatype="html">
         <source> Vi fandt ingen nye enheder. Tjek at enheden har strøm, og at lyset lyser. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">58,61</context>
+          <context context-type="linenumber">52,55</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.unavailable" datatype="html">
         <source> Vi kunne ikke spørge hjemmet om nye enheder lige nu. Prøv igen om et øjeblik. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">65,68</context>
+          <context context-type="linenumber">59,62</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.foundOne" datatype="html">
         <source>Vi fandt én ny enhed.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">70,72</context>
+          <context context-type="linenumber">64,66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.foundMany" datatype="html">
         <source> Vi fandt <x id="INTERPOLATION" equiv-text="{{ devices().length }}"/> nye enheder. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">73,75</context>
+          <context context-type="linenumber">67,69</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.searchAgain" datatype="html">
         <source> Søg igen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">100,103</context>
+          <context context-type="linenumber">94,97</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.step1" datatype="html">
         <source>Sender dit wifi til enheden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.ts</context>
-          <context context-type="linenumber">240</context>
+          <context context-type="linenumber">242</context>
         </context-group>
         <note priority="1" from="description">pretend setup step</note>
       </trans-unit>
@@ -330,7 +323,7 @@
         <source>Enheden genstarter og går på nettet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.ts</context>
-          <context context-type="linenumber">243</context>
+          <context context-type="linenumber">245</context>
         </context-group>
         <note priority="1" from="description">pretend setup step</note>
       </trans-unit>
@@ -338,7 +331,7 @@
         <source>Enheden melder sig til hjemmet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.ts</context>
-          <context context-type="linenumber">245</context>
+          <context context-type="linenumber">247</context>
         </context-group>
         <note priority="1" from="description">pretend setup step</note>
       </trans-unit>
@@ -346,7 +339,7 @@
         <source>Godt signal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.ts</context>
-          <context context-type="linenumber">287</context>
+          <context context-type="linenumber">289</context>
         </context-group>
         <note priority="1" from="description">wifi signal strength</note>
       </trans-unit>
@@ -354,7 +347,7 @@
         <source>Middel signal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.ts</context>
-          <context context-type="linenumber">290</context>
+          <context context-type="linenumber">292</context>
         </context-group>
         <note priority="1" from="description">wifi signal strength</note>
       </trans-unit>
@@ -362,7 +355,7 @@
         <source>Svagt signal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.ts</context>
-          <context context-type="linenumber">292</context>
+          <context context-type="linenumber">294</context>
         </context-group>
         <note priority="1" from="description">wifi signal strength</note>
       </trans-unit>

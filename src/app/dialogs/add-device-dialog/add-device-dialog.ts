@@ -148,12 +148,14 @@ export const SETUP_STEP_MS = new InjectionToken<number>('SETUP_STEP_MS', {
       background: var(--warm-label);
     }
 
+    /* Systemets alarm-roede - samme behandling appen bruger naar noget
+       kraever et ekstra blik, frem for en ny farve kun til dette. */
     .mockup {
       margin-top: 18px;
       padding: 14px 16px;
       border-radius: var(--radius-inner);
-      background: var(--surface-2);
-      color: var(--text-2);
+      background: var(--alert-bg);
+      color: var(--alert-text);
       font-size: 15px;
       line-height: 1.5;
     }
@@ -165,7 +167,7 @@ export const SETUP_STEP_MS = new InjectionToken<number>('SETUP_STEP_MS', {
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--warm-label);
+      color: var(--alert-strong);
     }
 
     .searching {

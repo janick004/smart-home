@@ -12,20 +12,14 @@
       }
     </ol>
 
-    <!-- Says out loud that nothing happened. A screen that walks through three
-         steps and then goes quiet is indistinguishable from one that worked. -->
+    <!-- In the system's alert red, and worded the same whether the walkthrough is
+         still stepping or finished: a screen that walks through three steps and
+         then goes quiet is indistinguishable from one that actually worked. -->
     <p class="mockup">
-      <span class="mockup__tag" i18n="@@addDevice.mockupTag">Attrap</span><br />
-      @if (done) {
-        <ng-container i18n="@@addDevice.mockupDone">
-          Sådan kommer det til at se ud. Der er ikke sendt noget til enheden — den står stadig med
-          sit eget wifi, og hjemmet ved ikke at den findes.
-        </ng-container>
-      } @else {
-        <ng-container i18n="@@addDevice.mockupRunning">
-          Skærmen her er en attrap. Der bliver ikke sendt noget til enheden.
-        </ng-container>
-      }
+      <span class="mockup__tag" i18n="@@addDevice.previewTag">Preview</span><br />
+      <ng-container i18n="@@addDevice.previewNotice">
+        Dette er et preview af hvordan det kan se ud. Der er ikke sendt noget til enheden.
+      </ng-container>
     </p>
 
     <div class="modal__actions">
