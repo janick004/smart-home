@@ -1,4 +1,4 @@
-# Smart hjem
+# Smart hjem test
 
 Angular-app til et smart hjem: rum, enheder (lamper, termometre, bevægelses- og
 fugtsensorer), tænd/sluk med fortryd-vindue, og advarsler når en enhed ikke
