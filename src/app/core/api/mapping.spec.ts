@@ -170,6 +170,28 @@ describe('grouping helpers', () => {
     expect(readings.get('4')).toBeUndefined();
   });
 
+  /**
+   * The real test database holds two temperature rows for the same device with
+   * the exact same timestamp (DataID 6 = 23.45, DataID 7 = 30.45). The API sorts
+   * on timestamp only, so the tied rows arrive in one order on the home page and
+   * the other in the device dialog - which showed 23 in one place and 30 in the
+   * other. The row inserted last must win in BOTH directions.
+   */
+  it('breaks a tie on identical timestamps by id, whichever order they arrive in', () => {
+    const older: SensorDataDto = {
+      dataId: 6,
+      deviceId: 1,
+      sensorType: 'temperature',
+      value: 23.45,
+      unit: 'C',
+      timestamp: '2026-08-19T08:00:00',
+    };
+    const newer: SensorDataDto = { ...older, dataId: 7, value: 30.45 };
+
+    expect(groupLatestReadings([older, newer]).get('1')?.temperature?.value).toBe(30.45);
+    expect(groupLatestReadings([newer, older]).get('1')?.temperature?.value).toBe(30.45);
+  });
+
   it('keeps only the newest command event per device', () => {
     const event = (deviceId: number, description: string, timestamp: string): EventLogDto => ({
       eventId: 1,
@@ -192,6 +214,26 @@ describe('grouping helpers', () => {
       },
     ]);
     expect(parseCommand(commands.get('1')?.description ?? null)).toBe('OFF');
+  });
+
+  /** An ON and an OFF in the same second: the lamp must not flip at random. */
+  it('breaks a command tie on identical timestamps by event id', () => {
+    const on: EventLogDto = {
+      eventId: 4,
+      deviceId: 1,
+      deviceName: 'testdevice',
+      event: COMMAND_EVENT_TYPE,
+      description: "Command 'ON' issued to device 'testdevice'.",
+      timestamp: '2026-08-19T10:10:32',
+    };
+    const off: EventLogDto = {
+      ...on,
+      eventId: 5,
+      description: "Command 'OFF' issued to device 'testdevice'.",
+    };
+
+    expect(parseCommand(groupLatestCommands([on, off]).get('1')?.description ?? null)).toBe('OFF');
+    expect(parseCommand(groupLatestCommands([off, on]).get('1')?.description ?? null)).toBe('OFF');
   });
 });
 

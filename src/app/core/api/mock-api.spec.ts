@@ -32,16 +32,20 @@ describe('SmartHomeApi against the mock backend', () => {
     expect(rooms.find((room) => room.roomId === 1)?.deviceCount).toBe(4);
   });
 
-  it('serves devices seen on the network but not registered', async () => {
+  it('serves the access points a wifi scan would see', async () => {
     const discovered = await apiClient.getDiscoveredDevices();
     expect(discovered.length).toBe(2);
-    // The MAC is the identity; the type is a hint the hub may not have.
     expect(
       discovered.every((device) => /^([0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(device.macAddress)),
     ).toBe(true);
-    expect(discovered.some((device) => device.type === null)).toBe(true);
+    // The API filters server-side to names starting with "SmartHome".
+    expect(discovered.every((device) => device.ssid.startsWith('SmartHome'))).toBe(true);
+    // dBm, so negative and closer to 0 is stronger.
+    expect(discovered.every((device) => device.signalStrength < 0)).toBe(true);
+  });
 
-    // Registering one takes it off the list: it is no longer waiting.
+  it('keeps a registered device on the scan list — it is still broadcasting', async () => {
+    const discovered = await apiClient.getDiscoveredDevices();
     const target = discovered[0];
     await apiClient.registerDevice({
       name: 'Nyt termometer',
@@ -49,8 +53,11 @@ describe('SmartHomeApi against the mock backend', () => {
       roomId: 1,
       macAddress: target.macAddress,
     });
+
+    // The list is a live scan, not a queue of pending work. Registering a device
+    // does not make its access point vanish from the air.
     const left = await apiClient.getDiscoveredDevices();
-    expect(left.map((device) => device.macAddress)).not.toContain(target.macAddress);
+    expect(left.map((device) => device.macAddress)).toContain(target.macAddress);
   });
 
   it('leaves MAC, IP and registration date out of the device list', async () => {

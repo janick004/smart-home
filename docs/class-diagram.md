@@ -147,11 +147,9 @@ classDiagram
 
     class DiscoveredDevice {
         <<interface>>
+        +ssid: string
         +mac: string
-        +suggestedName: string
-        +kind: DeviceKind?
-        +ip: string?
-        +lastSeen: Date?
+        +signalStrength: number
     }
 
     class Toast {
@@ -182,6 +180,7 @@ classDiagram
     Toast --> ToastAction
     Room <.. Device : roomId
     DeviceDiscoveryService ..> DiscoveredDevice : finder
+    note for DiscoveredDevice "Et accesspoint fra hub'ens wifi-scanning,<br/>ikke en raekke i databasen. Derfor kun<br/>navn, MAC og signal - enheden er ikke<br/>paa hjemmenettet endnu.
     DeviceDiscoveryService --> SmartHomeApi : GET /devices/discovered
 ```
 
@@ -261,7 +260,7 @@ classDiagram
     class AddDeviceDialog {
         <<Component>>
         +phase: Signal~SearchPhase~
-        +found: Signal~DiscoveredDevice~
+        +devices: Signal~DiscoveredDevice[]~
     }
     class CreateRoomDialog {
         <<Component>>

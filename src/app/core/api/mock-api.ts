@@ -65,7 +65,7 @@ export class MockApiState {
   }[] = [];
   /**
    * Devices seen on the network but not registered. Stands in for what a hub
-   * learns from mDNS or an MQTT announce; `GET /devices/discovered` serves it.
+   * sees in a wifi scan; `GET /devices/discovered` serves it.
    */
   private discovered: DiscoveredDeviceDto[] = [];
   private sensorData: SensorDataDto[] = [];
@@ -125,6 +125,9 @@ export class MockApiState {
     }
 
     if (segments[0] === 'sensordata') {
+      if (segments.length === 2 && segments[1] === 'latest' && method === 'GET') {
+        return ok(this.latestSensorData(req.params));
+      }
       if (segments.length === 1) {
         if (method === 'GET') return ok(this.querySensorData(req.params));
         if (method === 'POST') return this.ingestSensorData(req.body as SensorDataCreateDto);
@@ -134,9 +137,14 @@ export class MockApiState {
       }
     }
 
-    if (segments[0] === 'eventlog' && segments.length === 1) {
-      if (method === 'GET') return ok(this.queryEventLog(req.params));
-      if (method === 'POST') return this.createEvent(req.body as EventLogCreateDto);
+    if (segments[0] === 'eventlog') {
+      if (segments.length === 2 && segments[1] === 'latest' && method === 'GET') {
+        return ok(this.latestEvents(req.params));
+      }
+      if (segments.length === 1) {
+        if (method === 'GET') return ok(this.queryEventLog(req.params));
+        if (method === 'POST') return this.createEvent(req.body as EventLogCreateDto);
+      }
     }
 
     if (segments[0] === 'dashboard' && segments[1] === 'summary' && method === 'GET') {
@@ -286,8 +294,8 @@ export class MockApiState {
       lastSeen: naiveUtc(now),
     };
     this.devices.push(device);
-    // Registering it means it is no longer waiting to be discovered.
-    this.discovered = this.discovered.filter((found) => found.macAddress !== body.macAddress);
+    // Nothing to remove from `discovered`: that list is a live wifi scan, not a
+    // queue. The device disappears from it when it stops broadcasting.
     // Like the API: the registration event is written WITHOUT a deviceId.
     this.appendEvent(
       null,
@@ -410,8 +418,36 @@ export class MockApiState {
           (from === null || sample.timestamp >= naiveParam(from)) &&
           (to === null || sample.timestamp <= naiveParam(to)),
       )
-      .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+      .sort((a, b) => b.timestamp.localeCompare(a.timestamp) || b.dataId - a.dataId)
       .slice(0, take);
+  }
+
+  /**
+   * `GET /sensordata/latest`: the newest row per device per sensor type, with no
+   * window and no row cap — so a value never disappears just because the house
+   * got chattier. Ties on the timestamp go to the row inserted last.
+   */
+  private latestSensorData(params: HttpParams): SensorDataDto[] {
+    const deviceId = params.get('deviceId');
+    const newest = new Map<string, SensorDataDto>();
+    for (const sample of this.sensorData) {
+      if (deviceId !== null && sample.deviceId !== Number(deviceId)) {
+        continue;
+      }
+      const key = `${sample.deviceId}/${sample.sensorType}`;
+      const current = newest.get(key);
+      const isNewer =
+        current === undefined ||
+        (current.timestamp === sample.timestamp
+          ? current.dataId < sample.dataId
+          : current.timestamp < sample.timestamp);
+      if (isNewer) {
+        newest.set(key, sample);
+      }
+    }
+    return [...newest.values()].sort(
+      (a, b) => a.deviceId - b.deviceId || a.sensorType.localeCompare(b.sensorType),
+    );
   }
 
   private ingestSensorData(body: SensorDataCreateDto): MockResult {
@@ -481,8 +517,30 @@ export class MockApiState {
           (from === null || event.timestamp >= naiveParam(from)) &&
           (to === null || event.timestamp <= naiveParam(to)),
       )
-      .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+      .sort((a, b) => b.timestamp.localeCompare(a.timestamp) || b.eventId - a.eventId)
       .slice(0, take);
+  }
+
+  /** `GET /eventlog/latest`: the newest event per device, windowless. */
+  private latestEvents(params: HttpParams): EventLogDto[] {
+    const deviceId = params.get('deviceId');
+    const eventType = params.get('eventType');
+    const newest = new Map<number, EventLogDto>();
+    for (const event of this.events) {
+      if (event.deviceId === null) continue;
+      if (deviceId !== null && event.deviceId !== Number(deviceId)) continue;
+      if (eventType !== null && event.event !== eventType) continue;
+      const current = newest.get(event.deviceId);
+      const isNewer =
+        current === undefined ||
+        (current.timestamp === event.timestamp
+          ? current.eventId < event.eventId
+          : current.timestamp < event.timestamp);
+      if (isNewer) {
+        newest.set(event.deviceId, event);
+      }
+    }
+    return [...newest.values()].sort((a, b) => (a.deviceId ?? 0) - (b.deviceId ?? 0));
   }
 
   private createEvent(body: EventLogCreateDto): MockResult {
@@ -661,23 +719,11 @@ export class MockApiState {
     // The garage sensor went quiet 27 hours ago.
     motionSample(10, 27 * hours);
 
-    // Two finds waiting on the network: one that announces what it is, one that
-    // only shows up as a MAC address, so the user has to pick the type.
+    // Two access points in range, as a wifi scan would report them: a strong one
+    // right next to the hub and a weaker one further away.
     this.discovered = [
-      {
-        macAddress: 'A4:CF:12:AA:01:02',
-        iPv4Address: '192.168.1.120',
-        type: 'thermometer',
-        suggestedName: 'Termometer',
-        lastSeen: at(2 * minutes),
-      },
-      {
-        macAddress: 'A4:CF:12:BB:07:31',
-        iPv4Address: '192.168.1.134',
-        type: null,
-        suggestedName: null,
-        lastSeen: at(40 * 1000),
-      },
+      { ssid: 'SmartHome-5A7C', macAddress: 'A4:CF:12:AA:01:02', signalStrength: -42 },
+      { ssid: 'SmartHome-0731', macAddress: 'A4:CF:12:BB:07:31', signalStrength: -71 },
     ];
 
     // Registrations plus the commands the lamps' state is derived from.

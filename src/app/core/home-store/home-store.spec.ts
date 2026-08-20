@@ -60,6 +60,43 @@ describe('HomeStore', () => {
     expect(getDevice('10').online).toBe(false);
   });
 
+  /**
+   * The two things that used to move a number on their own:
+   *
+   * 1. Age. Current values came from a "newest 1000 rows in the last 48 hours"
+   *    query, so a device that reports rarely fell out of it and read as having
+   *    no data — the value vanished without anything happening.
+   * 2. Which screen asked. The dialog re-fetched with a per-device filter, which
+   *    hit a different slice of that window, so it could show another value than
+   *    the tile behind it.
+   */
+  it('shows a reading no matter how old it is, and the dialog refresh does not change it', async () => {
+    const ancient = api.samples
+      .filter((sample) => sample.deviceId === 3)
+      .map((sample) => ({ ...sample, timestamp: '2020-01-01T00:00:00' }));
+    api.samples = [
+      ...api.samples.filter((sample) => sample.deviceId !== 3),
+      // Oldest first, so "the first one that arrives" would be the wrong answer.
+      ...ancient,
+      {
+        ...ancient[0],
+        dataId: 90_001,
+        sensorType: 'temperature',
+        value: 17,
+        timestamp: '2020-01-02T00:00:00',
+      },
+    ];
+
+    await store.load();
+    const fromList = getDevice('3');
+    expect(fromList.kind === 'thermometer' && fromList.temperature).toBe(17);
+
+    // Opening the dialog triggers this; it must land on the same row.
+    await store.refreshDevice('3');
+    const fromDetail = getDevice('3');
+    expect(fromDetail.kind === 'thermometer' && fromDetail.temperature).toBe(17);
+  });
+
   it('goes to error state when the API is down, and recovers on retry', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     try {
