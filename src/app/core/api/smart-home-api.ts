@@ -22,7 +22,7 @@ import {
   SensorDataDto,
   SensorDataQuery,
 } from './api-types';
-import { toApiTimestamp } from './mapping';
+import { COMMAND_EVENT_TYPE, toApiTimestamp } from './mapping';
 
 /**
  * Where the API lives. The default is a relative path so the dev server can
@@ -159,6 +159,24 @@ export class SmartHomeApi {
     return firstValueFrom(this.http.get<SensorDataDto[]>(`${this.baseUrl}/sensordata`, { params }));
   }
 
+  /**
+   * The newest reading per device per sensor type — "what the house reads right now".
+   *
+   * Prefer this over `querySensorData` for anything that shows a current value.
+   * The list endpoint answers with the newest N rows inside a time window, so a
+   * device that reports rarely drops out of it and reads as having no data —
+   * and, because the window depends on the filter, the same device could show
+   * one number on the home page and another in its own dialog. This endpoint has
+   * neither a window nor a row cap: exactly one row per device per sensor type.
+   */
+  getLatestSensorData(deviceId?: string): Promise<SensorDataDto[]> {
+    const params =
+      deviceId === undefined ? new HttpParams() : new HttpParams().set('deviceId', deviceId);
+    return firstValueFrom(
+      this.http.get<SensorDataDto[]>(`${this.baseUrl}/sensordata/latest`, { params }),
+    );
+  }
+
   /** 422 + an event-log entry when the value or the unit is outside spec. */
   ingestSensorData(body: SensorDataCreateDto): Promise<SensorDataDto> {
     return firstValueFrom(this.http.post<SensorDataDto>(`${this.baseUrl}/sensordata`, body));
@@ -188,6 +206,21 @@ export class SmartHomeApi {
       params = params.set('take', query.take);
     }
     return firstValueFrom(this.http.get<EventLogDto[]>(`${this.baseUrl}/eventlog`, { params }));
+  }
+
+  /**
+   * The newest command event per device — the API's only signal for whether a
+   * lamp is on. Windowless for the same reason as `getLatestSensorData`: a lamp
+   * whose last command fell outside the window used to read as switched OFF.
+   */
+  getLatestCommands(deviceId?: string): Promise<EventLogDto[]> {
+    let params = new HttpParams().set('eventType', COMMAND_EVENT_TYPE);
+    if (deviceId !== undefined) {
+      params = params.set('deviceId', deviceId);
+    }
+    return firstValueFrom(
+      this.http.get<EventLogDto[]>(`${this.baseUrl}/eventlog/latest`, { params }),
+    );
   }
 
   createEvent(body: EventLogCreateDto): Promise<EventLogDto> {

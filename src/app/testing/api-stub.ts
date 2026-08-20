@@ -7,11 +7,13 @@ import {
   DeviceStatusDto,
   DeviceUpdateDto,
   EventLogDto,
+  EventLogQuery,
   RoomDto,
   RoomWriteDto,
   SensorDataDto,
+  SensorDataQuery,
 } from '../core/api/api-types';
-import { COMMAND_EVENT_TYPE } from '../core/api/mapping';
+import { COMMAND_EVENT_TYPE, toApiTimestamp } from '../core/api/mapping';
 
 /**
  * Immediate, deterministic stand-in for SmartHomeApi in unit tests. The same
@@ -135,12 +137,85 @@ export class SmartHomeApiStub {
     return device ? Promise.resolve({ ...device }) : Promise.reject(new Error('404'));
   }
 
-  querySensorData(): Promise<SensorDataDto[]> {
-    return Promise.resolve([...this.samples]);
+  /**
+   * Faithful to the real endpoint, window and all: newest first, `from`/`deviceId`
+   * honoured, and `take` defaulting to the API's 200. That matters — this is the
+   * shape that used to make values appear and disappear on their own, so a test
+   * that reaches for a "current" value through here SHOULD feel the window.
+   */
+  querySensorData(query: SensorDataQuery = {}): Promise<SensorDataDto[]> {
+    const from = query.from === undefined ? null : toApiTimestamp(query.from);
+    return Promise.resolve(
+      this.samples
+        .filter(
+          (sample) =>
+            (query.deviceId === undefined || String(sample.deviceId) === query.deviceId) &&
+            (query.sensorType === undefined || sample.sensorType === query.sensorType) &&
+            (from === null || sample.timestamp >= from),
+        )
+        .sort((a, b) => b.timestamp.localeCompare(a.timestamp) || b.dataId - a.dataId)
+        .slice(0, query.take ?? 200),
+    );
   }
 
-  queryEventLog(): Promise<EventLogDto[]> {
-    return Promise.resolve([...this.events]);
+  queryEventLog(query: EventLogQuery = {}): Promise<EventLogDto[]> {
+    const from = query.from === undefined ? null : toApiTimestamp(query.from);
+    return Promise.resolve(
+      this.events
+        .filter(
+          (event) =>
+            (query.deviceId === undefined || String(event.deviceId) === query.deviceId) &&
+            (query.eventType === undefined || event.event === query.eventType) &&
+            (from === null || event.timestamp >= from),
+        )
+        .sort((a, b) => b.timestamp.localeCompare(a.timestamp) || b.eventId - a.eventId)
+        .slice(0, query.take ?? 200),
+    );
+  }
+
+  /**
+   * Like the API's `/sensordata/latest`: one row per device per sensor type, no
+   * window, ties won by the row inserted last. Kept faithful on purpose — the
+   * store now depends on this endpoint for every current value it shows.
+   */
+  getLatestSensorData(deviceId?: string): Promise<SensorDataDto[]> {
+    const newest = new Map<string, SensorDataDto>();
+    for (const sample of this.samples) {
+      if (deviceId !== undefined && String(sample.deviceId) !== deviceId) {
+        continue;
+      }
+      const key = `${sample.deviceId}/${sample.sensorType}`;
+      const current = newest.get(key);
+      const isNewer =
+        current === undefined ||
+        (current.timestamp === sample.timestamp
+          ? current.dataId < sample.dataId
+          : current.timestamp < sample.timestamp);
+      if (isNewer) {
+        newest.set(key, sample);
+      }
+    }
+    return Promise.resolve([...newest.values()]);
+  }
+
+  /** Like the API's `/eventlog/latest?eventType=CommandIssued`. */
+  getLatestCommands(deviceId?: string): Promise<EventLogDto[]> {
+    const newest = new Map<number, EventLogDto>();
+    for (const event of this.events) {
+      if (event.deviceId === null) continue;
+      if (deviceId !== undefined && String(event.deviceId) !== deviceId) continue;
+      if (event.event !== COMMAND_EVENT_TYPE) continue;
+      const current = newest.get(event.deviceId);
+      const isNewer =
+        current === undefined ||
+        (current.timestamp === event.timestamp
+          ? current.eventId < event.eventId
+          : current.timestamp < event.timestamp);
+      if (isNewer) {
+        newest.set(event.deviceId, event);
+      }
+    }
+    return Promise.resolve([...newest.values()]);
   }
 
   getDeviceEvents(id: string): Promise<EventLogDto[]> {

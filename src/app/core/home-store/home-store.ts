@@ -1,6 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import {
-  COMMAND_EVENT_TYPE,
   groupLatestCommands,
   groupLatestReadings,
   mapDevice,
@@ -41,10 +40,15 @@ export type StoreStatus = 'loading' | 'ready' | 'error';
 export const UNDO_TTL_MS = 10_000;
 const NOTICE_TTL_MS = 4_000;
 const RETRY_TTL_MS = 8_000;
-/** How far back we look for "current" sensor readings when loading. */
-const READINGS_LOOKBACK_MS = 48 * 3_600_000;
-/** The API's cap per query — its default of 200 is too little for a bulk fetch. */
-const MAX_TAKE = 1000;
+/**
+ * Current readings and lamp state come from the API's windowless `/latest`
+ * endpoints, NOT from a "newest N rows in the last X hours" query. That query
+ * shape made values move on their own: the newest 1000 rows for the whole house
+ * cover less and less time as devices are added, so a device could drop out of
+ * the window and read as "no data" without anything having happened — and since
+ * the window depends on the filter, the home page and the device dialog could
+ * disagree about the very same device. See docs/API-NOTES.md.
+ */
 
 interface ToastTimer {
   handle: ReturnType<typeof setTimeout> | null;
@@ -127,10 +131,9 @@ export class HomeStore {
         this.api.getRooms(),
         this.api.getDevices(),
       ]);
-      const from = new Date(Date.now() - READINGS_LOOKBACK_MS);
       const [samples, commandEvents] = await Promise.all([
-        this.api.querySensorData({ from, take: MAX_TAKE }),
-        this.api.queryEventLog({ eventType: COMMAND_EVENT_TYPE, take: MAX_TAKE }),
+        this.api.getLatestSensorData(),
+        this.api.getLatestCommands(),
       ]);
       const readings = groupLatestReadings(samples);
       const commands = groupLatestCommands(commandEvents);
@@ -178,11 +181,12 @@ export class HomeStore {
   async refreshDevice(deviceId: string): Promise<Device | null> {
     try {
       const dto = await this.api.getDevice(deviceId);
-      const from = new Date(Date.now() - READINGS_LOOKBACK_MS);
+      // Deliberately the SAME two calls as load(), just narrowed to one device:
+      // if the two paths asked differently they could disagree about the value.
       const [samples, events] = await Promise.all([
-        this.api.querySensorData({ deviceId, from, take: MAX_TAKE }),
+        this.api.getLatestSensorData(deviceId),
         parseDeviceKind(dto.type) === 'lamp'
-          ? this.api.getDeviceEvents(deviceId)
+          ? this.api.getLatestCommands(deviceId)
           : Promise.resolve([]),
       ]);
       const readings = groupLatestReadings(samples).get(deviceId) ?? {};

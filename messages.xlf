@@ -85,10 +85,6 @@
           <context context-type="linenumber">50,51</context>
         </context-group>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">93,94</context>
-        </context-group>
-        <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/create-room-dialog/create-room-dialog.html</context>
           <context context-type="linenumber">1,2</context>
         </context-group>
@@ -137,7 +133,7 @@
         <source><x id="name" equiv-text="device.name"/> svarede ikke — den er stadig tændt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">264</context>
+          <context context-type="linenumber">268</context>
         </context-group>
         <note priority="1" from="description">rollback toast after a failed lamp command; the lamp is still on</note>
       </trans-unit>
@@ -145,7 +141,7 @@
         <source><x id="name" equiv-text="device.name"/> svarede ikke — den er stadig slukket</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">265</context>
+          <context context-type="linenumber">269</context>
         </context-group>
         <note priority="1" from="description">rollback toast after a failed lamp command; the lamp is still off</note>
       </trans-unit>
@@ -153,7 +149,7 @@
         <source>Prøv igen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">269</context>
+          <context context-type="linenumber">273</context>
         </context-group>
         <note priority="1" from="description">retry a failed lamp command</note>
       </trans-unit>
@@ -161,7 +157,7 @@
         <source>Rummet kunne ikke oprettes — prøv igen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">287</context>
+          <context context-type="linenumber">291</context>
         </context-group>
         <note priority="1" from="description">error toast</note>
       </trans-unit>
@@ -169,11 +165,11 @@
         <source>Navnet kunne ikke gemmes — prøv igen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">310</context>
+          <context context-type="linenumber">314</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">466</context>
+          <context context-type="linenumber">470</context>
         </context-group>
         <note priority="1" from="description">error toast</note>
       </trans-unit>
@@ -181,7 +177,7 @@
         <source><x id="name" equiv-text="room.name"/> er slettet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">366</context>
+          <context context-type="linenumber">370</context>
         </context-group>
         <note priority="1" from="description">undo toast after deleting a room</note>
       </trans-unit>
@@ -189,11 +185,11 @@
         <source>Fortryd</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">370</context>
+          <context context-type="linenumber">374</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">507</context>
+          <context context-type="linenumber">511</context>
         </context-group>
         <note priority="1" from="description">undo action on a toast</note>
       </trans-unit>
@@ -201,7 +197,7 @@
         <source><x id="name" equiv-text="room.name"/> kunne ikke slettes — henter hjemmet igen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">417</context>
+          <context context-type="linenumber">421</context>
         </context-group>
         <note priority="1" from="description">error toast; the app resyncs from the API</note>
       </trans-unit>
@@ -209,7 +205,7 @@
         <source>Enheden kunne ikke tilføjes — prøv igen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">444</context>
+          <context context-type="linenumber">448</context>
         </context-group>
         <note priority="1" from="description">error toast</note>
       </trans-unit>
@@ -217,7 +213,7 @@
         <source><x id="name" equiv-text="device.name"/> kunne ikke flyttes — prøv igen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">485</context>
+          <context context-type="linenumber">489</context>
         </context-group>
         <note priority="1" from="description">error toast</note>
       </trans-unit>
@@ -225,7 +221,7 @@
         <source><x id="name" equiv-text="device.name"/> er fjernet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">503</context>
+          <context context-type="linenumber">507</context>
         </context-group>
         <note priority="1" from="description">undo toast after removing a device</note>
       </trans-unit>
@@ -233,7 +229,7 @@
         <source><x id="name" equiv-text="device.name"/> kunne ikke fjernes — den er lagt tilbage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/home-store/home-store.ts</context>
-          <context context-type="linenumber">522</context>
+          <context context-type="linenumber">526</context>
         </context-group>
         <note priority="1" from="description">error toast; the device reappears</note>
       </trans-unit>
@@ -241,164 +237,78 @@
         <source>Søger efter nye enheder på dit wifi…</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">8,10</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="dialog.cancel" datatype="html">
-        <source> Fortryd </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">12,14</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">30,32</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">50,52</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">96,97</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">155,156</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/create-room-dialog/create-room-dialog.html</context>
-          <context context-type="linenumber">38,40</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/delete-room-dialog/delete-room-dialog.html</context>
-          <context context-type="linenumber">47,49</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/move-device-dialog/move-device-dialog.ts</context>
-          <context context-type="linenumber">23,24</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/move-device-dialog/move-device-dialog.ts</context>
-          <context context-type="linenumber">41,42</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/rename-dialog/rename-dialog.ts</context>
-          <context context-type="linenumber">46,48</context>
+          <context context-type="linenumber">8,11</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.noneFound" datatype="html">
-        <source> Vi fandt ingen nye enheder. Tjek at enheden har strøm og er på husets wifi. </source>
+        <source> Vi fandt ingen nye enheder. Tjek at enheden har strøm, og at lyset lyser. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">18,20</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="addDevice.searchAgain" datatype="html">
-        <source> Søg igen </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">27,29</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">47,49</context>
+          <context context-type="linenumber">13,16</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.unavailable" datatype="html">
         <source> Vi kunne ikke spørge hjemmet om nye enheder lige nu. Prøv igen om et øjeblik. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">38,40</context>
+          <context context-type="linenumber">20,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.foundOne" datatype="html">
-        <source>Vi fandt én ny enhed på dit wifi.</source>
+        <source>Vi fandt én ny enhed.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">56,58</context>
+          <context context-type="linenumber">25,27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="addDevice.foundMany" datatype="html">
-        <source> Vi fandt <x id="INTERPOLATION" equiv-text="{{ devices().length }}"/> nye enheder på dit wifi. Vælg den, du vil sætte op. </source>
+        <source> Vi fandt <x id="INTERPOLATION" equiv-text="{{ devices().length }}"/> nye enheder. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
+          <context context-type="linenumber">28,30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="addDevice.searchAgain" datatype="html">
+        <source> Søg igen </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
+          <context context-type="linenumber">55,58</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="dialog.close" datatype="html">
+        <source> Luk </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
           <context context-type="linenumber">59,61</context>
         </context-group>
-      </trans-unit>
-      <trans-unit id="addDevice.selected" datatype="html">
-        <source>Valgt</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">77,79</context>
+          <context context-type="sourcefile">src/app/dialogs/device-detail-dialog/device-detail-dialog.html</context>
+          <context context-type="linenumber">157,159</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="addDevice.noRooms" datatype="html">
-        <source> Enheden skal bo i et rum, og du har ikke oprettet nogen endnu. Opret et rum, og find enheden igen. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">88,90</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="addDevice.namePlaceholder" datatype="html">
-        <source>Giv den et navn</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">105,107</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="addDevice.pickKind" datatype="html">
-        <source>Hvad er det for en enhed?</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">113,114</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">117,118</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="addDevice.pickRoom" datatype="html">
-        <source>Vælg rum</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">130,131</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">134,135</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/delete-room-dialog/delete-room-dialog.html</context>
-          <context context-type="linenumber">18,19</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/delete-room-dialog/delete-room-dialog.html</context>
-          <context context-type="linenumber">22,23</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="addDevice.submit" datatype="html">
-        <source> Tilføj </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.html</context>
-          <context context-type="linenumber">152,153</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="addDevice.unknownDevice" datatype="html">
-        <source>Ukendt enhed</source>
+      <trans-unit id="addDevice.signalStrong" datatype="html">
+        <source>Godt signal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.ts</context>
-          <context context-type="linenumber">164</context>
+          <context context-type="linenumber">126</context>
         </context-group>
-        <note priority="1" from="description">card title for a find with no name and no type</note>
+        <note priority="1" from="description">wifi signal strength</note>
       </trans-unit>
-      <trans-unit id="addDevice.added" datatype="html">
-        <source><x id="name" equiv-text="added.name"/> er tilføjet i <x id="room" equiv-text="roomName"/></source>
+      <trans-unit id="addDevice.signalOk" datatype="html">
+        <source>Middel signal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.ts</context>
-          <context context-type="linenumber">239</context>
+          <context context-type="linenumber">129</context>
         </context-group>
-        <note priority="1" from="description">toast after adding a device to a room</note>
+        <note priority="1" from="description">wifi signal strength</note>
+      </trans-unit>
+      <trans-unit id="addDevice.signalWeak" datatype="html">
+        <source>Svagt signal</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/add-device-dialog/add-device-dialog.ts</context>
+          <context context-type="linenumber">131</context>
+        </context-group>
+        <note priority="1" from="description">wifi signal strength</note>
       </trans-unit>
       <trans-unit id="createRoom.namePlaceholder" datatype="html">
         <source>Hvad hedder rummet?</source>
@@ -419,6 +329,29 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/create-room-dialog/create-room-dialog.html</context>
           <context context-type="linenumber">35,37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="dialog.cancel" datatype="html">
+        <source> Fortryd </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/create-room-dialog/create-room-dialog.html</context>
+          <context context-type="linenumber">38,40</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/delete-room-dialog/delete-room-dialog.html</context>
+          <context context-type="linenumber">47,49</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/move-device-dialog/move-device-dialog.ts</context>
+          <context context-type="linenumber">23,24</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/move-device-dialog/move-device-dialog.ts</context>
+          <context context-type="linenumber">41,42</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/rename-dialog/rename-dialog.ts</context>
+          <context context-type="linenumber">46,48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="createRoom.suggestionHall" datatype="html">
@@ -472,6 +405,17 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/delete-room-dialog/delete-room-dialog.html</context>
           <context context-type="linenumber">10,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="addDevice.pickRoom" datatype="html">
+        <source>Vælg rum</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/delete-room-dialog/delete-room-dialog.html</context>
+          <context context-type="linenumber">18,19</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/dialogs/delete-room-dialog/delete-room-dialog.html</context>
+          <context context-type="linenumber">22,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="deleteRoom.noOtherRooms" datatype="html">
@@ -677,13 +621,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/dialogs/device-detail-dialog/device-detail-dialog.html</context>
           <context context-type="linenumber">154,155</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="dialog.close" datatype="html">
-        <source> Luk </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/dialogs/device-detail-dialog/device-detail-dialog.html</context>
-          <context context-type="linenumber">157,159</context>
         </context-group>
       </trans-unit>
       <trans-unit id="device.lastMotion" datatype="html">
@@ -1175,38 +1112,6 @@
           <context context-type="linenumber">61</context>
         </context-group>
         <note priority="1" from="description">motion sensor at rest</note>
-      </trans-unit>
-      <trans-unit id="kind.lamp" datatype="html">
-        <source>Lampe</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/device-format/device-format.ts</context>
-          <context context-type="linenumber">74</context>
-        </context-group>
-        <note priority="1" from="description">device kind</note>
-      </trans-unit>
-      <trans-unit id="kind.thermometer" datatype="html">
-        <source>Termometer</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/device-format/device-format.ts</context>
-          <context context-type="linenumber">76</context>
-        </context-group>
-        <note priority="1" from="description">device kind</note>
-      </trans-unit>
-      <trans-unit id="kind.humidity" datatype="html">
-        <source>Fugtsensor</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/device-format/device-format.ts</context>
-          <context context-type="linenumber">78</context>
-        </context-group>
-        <note priority="1" from="description">device kind</note>
-      </trans-unit>
-      <trans-unit id="kind.motion" datatype="html">
-        <source>Bevægelsessensor</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/device-format/device-format.ts</context>
-          <context context-type="linenumber">80</context>
-        </context-group>
-        <note priority="1" from="description">device kind</note>
       </trans-unit>
       <trans-unit id="device.toggleLabel" datatype="html">
         <source>Tænd eller sluk <x id="name" equiv-text="name"/></source>

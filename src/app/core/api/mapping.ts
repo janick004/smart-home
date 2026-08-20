@@ -200,17 +200,16 @@ export function mapDevice(
 }
 
 /**
- * A device the hub has seen but nobody has registered. The MAC is the only
- * field we insist on: without it there is nothing to register. An unknown or
- * missing type becomes `null`, and the user picks one when setting the device up.
+ * One access point from the hub's wifi scan. Every field is defended with a
+ * default: this comes from a shell-out to `iw` that is parsed line by line
+ * server-side, so a half-parsed row is a realistic answer, and `undefined`
+ * must never reach the screen.
  */
 export function mapDiscoveredDevice(dto: DiscoveredDeviceDto): DiscoveredDevice {
   return {
-    mac: dto.macAddress,
-    suggestedName: dto.suggestedName?.trim() ?? '',
-    kind: dto.type ? parseDeviceKind(dto.type) : null,
-    ip: dto.iPv4Address ?? null,
-    lastSeen: dto.lastSeen ? parseApiDate(dto.lastSeen) : null,
+    ssid: dto.ssid ?? '',
+    mac: dto.macAddress ?? '',
+    signalStrength: dto.signalStrength ?? 0,
   };
 }
 
@@ -227,6 +226,27 @@ export function toDeviceUpdateDto(device: Device): DeviceUpdateDto {
   };
 }
 
+/**
+ * True when `candidate` is newer than `current`.
+ *
+ * Two rows CAN carry the exact same timestamp (the API stores whole seconds, and
+ * nothing stops a device from sending twice within one), and `GET /sensordata`
+ * only sorts by timestamp — so a tie comes back in whatever order MySQL feels
+ * like. Without the id as a tie-breaker the same device showed 23° on the home
+ * page and 30° in its dialog, because the two views ask with different filters
+ * and got the tied rows in opposite order. The higher id is the row inserted
+ * last, so it wins.
+ */
+function isNewerSample(current: SensorDataDto | undefined, candidate: SensorDataDto): boolean {
+  if (!current) {
+    return true;
+  }
+  if (current.timestamp !== candidate.timestamp) {
+    return current.timestamp < candidate.timestamp;
+  }
+  return current.dataId < candidate.dataId;
+}
+
 /** Groups a readings response into "newest reading per device per sensor type". */
 export function groupLatestReadings(
   samples: readonly SensorDataDto[],
@@ -239,8 +259,7 @@ export function groupLatestReadings(
     }
     const deviceId = String(sample.deviceId);
     const entry = byDevice.get(deviceId) ?? {};
-    const current = entry[sensorType];
-    if (!current || current.timestamp < sample.timestamp) {
+    if (isNewerSample(entry[sensorType], sample)) {
       entry[sensorType] = sample;
       byDevice.set(deviceId, entry);
     }
@@ -257,7 +276,15 @@ export function groupLatestCommands(events: readonly EventLogDto[]): Map<string,
     }
     const deviceId = String(event.deviceId);
     const current = byDevice.get(deviceId);
-    if (!current || current.timestamp < event.timestamp) {
+    // Same tie as the readings above, and it matters more here: an ON and an OFF
+    // written in the same second would otherwise leave the lamp's state up to
+    // the order the API happened to return. The later row (higher id) wins.
+    const isNewer =
+      !current ||
+      (current.timestamp === event.timestamp
+        ? current.eventId < event.eventId
+        : current.timestamp < event.timestamp);
+    if (isNewer) {
       byDevice.set(deviceId, event);
     }
   }

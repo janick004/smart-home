@@ -47,6 +47,7 @@ grænsen.
 | `POST /rooms`, `PUT /rooms/{id}`, `DELETE /rooms/{id}`                                                        | opret/omdøb/slet rum (409 håndteres)                             |
 | `GET /devices`                                                                                                | enhedslisten                                                     |
 | `GET /devices/{id}`                                                                                           | teknik-kortet (MAC/IP/registreret) + "Prøv at finde den igen"    |
+| `GET /devices/discovered`                                                                                     | listen i "Tilføj enhed" — en wifi-scanning, ikke databasen       |
 | `POST /devices`                                                                                               | registrering af fundet enhed (kræver MAC)                        |
 | `PUT /devices/{id}`                                                                                           | omdøb + flyt enhed (HEL erstatning)                              |
 | `DELETE /devices/{id}`                                                                                        | fjern enhed — kaldes først når fortryd-vinduet (10 s) er udløbet |
@@ -84,35 +85,30 @@ Konventioner appen regner med i databasen:
    appen henter `GET /sensordata?from=<48 t siden>&take=1000` og grupperer
    klient-side. Med mange enheder rammer man `take`-loftet (1000). Ønske:
    `lastReadings` i `GET /devices` eller `GET /devices/latest-readings`.
-5. **Discovery/parring — frontend'en er klar, endpointet mangler.**
-   "Tilføj enhed" kalder nu `GET /devices/discovered` og viser resultatet som en
-   liste, man vælger fra. Endpointet findes ikke i API'et endnu, så kaldet svarer
-   404, og dialogen siger _"Vi kunne ikke spørge hjemmet om nye enheder lige nu"_
-   i stedet for at simulere et fund. Mock-backend'en implementerer det, så flowet
-   kan køres og testes. Den form klienten forventer (`DiscoveredDeviceDto`):
+5. ~~**Discovery — endpointet mangler.**~~ **Findes nu** (`origin/master`,
+   2026-08-20). `GET /devices/discovered` er en **wifi-scanning**, ikke et
+   database-opslag: `Services/WifiDiscoveryService.cs` kalder
+   `sudo iw dev wlan0 scan`, parser outputtet og filtrerer serverside til navne
+   der starter med `SmartHome`. Formen er
 
    ```json
-   [
-     {
-       "macAddress": "A4:CF:12:AA:01:02",
-       "iPv4Address": "192.168.1.120",
-       "type": "thermometer",
-       "suggestedName": "Termometer",
-       "lastSeen": "2026-08-19T10:02:00"
-     }
-   ]
+   [{ "ssid": "SmartHome-5A7C", "macAddress": "a4:cf:12:aa:01:02", "signalStrength": -42 }]
    ```
 
-   Kun `macAddress` er påkrævet — den er identiteten, `POST /devices`
-   registrerer på. `type` og `suggestedName` må gerne være `null`: en enhed på
-   wifi'et annoncerer ikke nødvendigvis hvad den er, og så vælger brugeren typen
-   i dialogen. En registreret MAC bør forsvinde fra listen.
+   Tre konsekvenser appen skal leve med, og gør:
 
-   Kilden til listen kan være MQTT: `MqttService` på `master` lytter allerede på
-   `smarthome/device/+/sensor/#`. Et topic med en MAC (i stedet for et
-   database-id) ville gøre en ukendt enhed til en "set, men ikke registreret"-række
-   — og samtidig fjerne det nuværende hønen-og-ægget, hvor firmwaren skal kende
-   sit database-id, før den kan sende noget.
+   - **Der er ingen IP, ingen type og ingen historik.** Enheden er ikke på
+     hjemmenettet — den udsender sit eget net. Alt hvad vi ved, står i navnet og
+     signalet. Derfor viser dialogen kun listen: der er ikke noget at registrere
+     imod endnu.
+   - **Listen er live, ikke en kø.** En enhed forsvinder fra den når den holder
+     op med at udsende, ikke når man har registreret den. Mock-backend'en gør
+     nu det samme (den fjernede før en registreret MAC fra listen, hvilket var
+     misvisende).
+   - **Den kræver en Raspberry Pi.** `sudo iw dev wlan0 scan` findes ikke i en
+     container og ikke på en Mac; endpointet svarer 500 dér. `DeviceDiscoveryService`
+     behandler alt andet end 200 som `unavailable`, så dialogen siger _"vi kunne
+     ikke spørge hjemmet"_ i stedet for at påstå at luften er tom.
 
 6. **Ping/health-check pr. enhed.** Fejlfindingsdialogen re-checker via
    `GET /devices/{id}`. Et rigtigt `POST /devices/{id}/ping` ville være bedre.

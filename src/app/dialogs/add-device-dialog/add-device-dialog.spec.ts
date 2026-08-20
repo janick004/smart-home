@@ -2,23 +2,25 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SmartHomeApi } from '../../core/api/smart-home-api';
 import { DeviceDiscoveryService, DiscoveryResult } from '../../core/discovery/discovery';
-import { HomeStore } from '../../core/home-store/home-store';
+import { DialogService } from '../../core/dialog/dialog';
 import { DiscoveredDevice } from '../../core/models';
 import { SmartHomeApiStub } from '../../testing/api-stub';
 import { AddDeviceDialog } from './add-device-dialog';
 
-function found(mac: string, overrides: Partial<DiscoveredDevice> = {}): DiscoveredDevice {
-  return { mac, suggestedName: '', kind: null, ip: null, lastSeen: null, ...overrides };
+function found(ssid: string, mac: string, signalStrength: number): DiscoveredDevice {
+  return { ssid, mac, signalStrength };
 }
 
 /** Answers immediately, with no delay and no randomness. */
 class DiscoveryStub {
+  calls = 0;
   result: DiscoveryResult = {
     status: 'found',
-    devices: [found('A4:CF:12:AA:01:02', { suggestedName: 'Termometer', kind: 'thermometer' })],
+    devices: [found('SmartHome-5A7C', 'A4:CF:12:AA:01:02', -42)],
   };
 
   discoverDevices(): Promise<DiscoveryResult> {
+    this.calls++;
     return Promise.resolve(this.result);
   }
 }
@@ -27,7 +29,7 @@ describe('AddDeviceDialog', () => {
   let api: SmartHomeApiStub;
   let discovery: DiscoveryStub;
 
-  async function render(): Promise<{ fixture: ComponentFixture<AddDeviceDialog>; text: string }> {
+  async function render(): Promise<ComponentFixture<AddDeviceDialog>> {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
@@ -35,112 +37,129 @@ describe('AddDeviceDialog', () => {
         { provide: DeviceDiscoveryService, useValue: discovery },
       ],
     });
-    await TestBed.inject(HomeStore).load();
     const fixture = TestBed.createComponent(AddDeviceDialog);
     await fixture.whenStable();
-    const text = ((fixture.nativeElement as HTMLElement).textContent ?? '')
-      .replace(/\s+/g, ' ')
-      .trim();
-    return { fixture, text };
+    return fixture;
+  }
+
+  function text(fixture: ComponentFixture<AddDeviceDialog>): string {
+    return ((fixture.nativeElement as HTMLElement).textContent ?? '').replace(/\s+/g, ' ').trim();
+  }
+
+  function buttonLabels(fixture: ComponentFixture<AddDeviceDialog>): string[] {
+    return Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('button'),
+    ).map((button) => (button.textContent ?? '').trim());
   }
 
   beforeEach(() => {
     api = new SmartHomeApiStub();
     discovery = new DiscoveryStub();
-    TestBed.resetTestingModule();
   });
 
-  it('shows what the hub found, and preselects a single find', async () => {
-    const { fixture, text } = await render();
-
-    expect(text).toContain('Vi fandt én ny enhed');
-    expect(text).toContain('Termometer');
-    // The MAC address identifies the find, so it belongs on the card.
-    expect(text).toContain('A4:CF:12:AA:01:02');
-    expect(text).toContain('Valgt');
-    const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector<HTMLInputElement>('input.field')?.value).toBe('Termometer');
-    // The announced type must be the one the picker SHOWS: a <select> with a
-    // [value] binding gets its value before @for renders the options, and the
-    // browser then selects the first one — so the user would have registered a
-    // thermometer as a lamp without touching anything.
-    expect(element.querySelectorAll<HTMLSelectElement>('select')[0].value).toBe('thermometer');
+  it('lists what the scan found: network name and MAC address', async () => {
+    const fixture = await render();
+    expect(text(fixture)).toContain('SmartHome-5A7C');
+    expect(text(fixture)).toContain('A4:CF:12:AA:01:02');
+    expect(text(fixture)).toContain('-42 dBm');
   });
 
-  it('lets you pick between several finds', async () => {
+  it('puts the strongest signal first — that is the device in your hand', async () => {
     discovery.result = {
       status: 'found',
       devices: [
-        found('A4:CF:12:AA:01:02', { suggestedName: 'Termometer', kind: 'thermometer' }),
-        found('A4:CF:12:BB:07:31', { ip: '192.168.1.134' }),
+        found('SmartHome-Langt-Vaek', 'AA:BB:CC:00:00:01', -84),
+        found('SmartHome-Taet-Paa', 'AA:BB:CC:00:00:02', -38),
+        found('SmartHome-Midt', 'AA:BB:CC:00:00:03', -66),
       ],
     };
-
-    const { fixture, text } = await render();
-    const element = fixture.nativeElement as HTMLElement;
-
-    expect(text).toContain('Vi fandt 2 nye enheder');
-    // A find that announced neither name nor type still gets a title.
-    expect(text).toContain('Ukendt enhed');
-    expect(text).toContain('192.168.1.134');
-    // Nothing is chosen for you when there is more than one.
-    expect(text).not.toContain('Valgt');
-
-    const cards = element.querySelectorAll<HTMLButtonElement>('.found-card');
-    expect(cards.length).toBe(2);
-    cards[1].click();
-    await fixture.whenStable();
-
-    expect((element.textContent ?? '').replace(/\s+/g, ' ')).toContain('Valgt');
-    // No announced type: the type picker stays empty for the user to answer.
-    expect(element.querySelectorAll<HTMLSelectElement>('select')[0].value).toBe('');
+    const fixture = await render();
+    const names = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.found-card__name'),
+    ).map((element) => element.textContent?.trim());
+    expect(names).toEqual(['SmartHome-Taet-Paa', 'SmartHome-Midt', 'SmartHome-Langt-Vaek']);
   });
 
-  it('registers the picked device on its MAC address', async () => {
-    const { fixture } = await render();
-    const element = fixture.nativeElement as HTMLElement;
-
-    const room = element.querySelectorAll<HTMLSelectElement>('select')[1];
-    room.value = '1';
-    room.dispatchEvent(new Event('change'));
-    await fixture.whenStable();
-
-    const submit = element.querySelector<HTMLButtonElement>('.btn--primary');
-    expect(submit?.disabled).toBe(false);
-    submit?.click();
-    await fixture.whenStable();
-
-    const registered = api.devices.find((device) => device.macAddress === 'A4:CF:12:AA:01:02');
-    expect(registered).toMatchObject({ name: 'Termometer', type: 'thermometer', roomId: 1 });
+  it('turns dBm into words, because -84 means nothing to most people', async () => {
+    discovery.result = {
+      status: 'found',
+      devices: [
+        found('SmartHome-A', 'AA:BB:CC:00:00:01', -38),
+        found('SmartHome-B', 'AA:BB:CC:00:00:02', -70),
+        found('SmartHome-C', 'AA:BB:CC:00:00:03', -84),
+      ],
+    };
+    const fixture = await render();
+    const body = text(fixture);
+    expect(body).toContain('Godt signal');
+    expect(body).toContain('Middel signal');
+    expect(body).toContain('Svagt signal');
   });
 
-  it('says the hub could not be asked, rather than claiming the network is empty', async () => {
-    discovery.result = { status: 'unavailable' };
-
-    const { text } = await render();
-
-    expect(text).toContain('Vi kunne ikke spørge hjemmet om nye enheder');
-    expect(text).toContain('Søg igen');
-    expect(text).not.toContain('Vi fandt ingen nye enheder');
+  it('says "én ny enhed" for a single find', async () => {
+    const fixture = await render();
+    expect(text(fixture)).toContain('én ny enhed');
   });
 
-  it('says so plainly when the network has nothing new on it', async () => {
+  it('counts the finds when there are several', async () => {
+    discovery.result = {
+      status: 'found',
+      devices: [
+        found('SmartHome-A', 'AA:BB:CC:00:00:01', -38),
+        found('SmartHome-B', 'AA:BB:CC:00:00:02', -70),
+      ],
+    };
+    const fixture = await render();
+    expect(text(fixture)).toContain('2 nye enheder');
+  });
+
+  it('says the air was empty when it was', async () => {
     discovery.result = { status: 'none' };
-
-    const { text } = await render();
-
-    expect(text).toContain('Vi fandt ingen nye enheder');
-    expect(text).toContain('Søg igen');
+    const fixture = await render();
+    expect(text(fixture)).toContain('ingen nye enheder');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.found-card')).toBeNull();
   });
 
-  it('explains why it cannot continue when there are no rooms yet', async () => {
-    api.rooms = [];
-    api.devices = [];
-
-    const { text } = await render();
-
-    expect(text).toContain('Enheden skal bo i et rum');
-    expect(text).toContain('Opret rum');
-    expect(text).not.toContain('Giv den et navn');
+  it('distinguishes "could not ask" from "nothing there"', async () => {
+    discovery.result = { status: 'unavailable' };
+    const fixture = await render();
+    // An empty list here would read as "your home has no new devices", which is
+    // a different and possibly false claim.
+    expect(text(fixture)).toContain('kunne ikke spørge hjemmet');
+    expect(text(fixture)).not.toContain('ingen nye enheder');
   });
+
+  it('offers nothing but looking — no name, no room, no add button', async () => {
+    const fixture = await render();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('input')).toBeNull();
+    expect(host.querySelector('select')).toBeNull();
+    expect(buttonLabels(fixture)).toEqual(['Søg igen', 'Luk']);
+  });
+
+  it('scans again on demand', async () => {
+    const fixture = await render();
+    expect(discovery.calls).toBe(1);
+
+    const again = Array.from(host(fixture).querySelectorAll<HTMLElement>('button')).find((button) =>
+      (button.textContent ?? '').includes('Søg igen'),
+    );
+    again?.click();
+    await fixture.whenStable();
+    expect(discovery.calls).toBe(2);
+  });
+
+  it('closes', async () => {
+    const fixture = await render();
+    const close = Array.from(host(fixture).querySelectorAll<HTMLElement>('button')).find((button) =>
+      (button.textContent ?? '').includes('Luk'),
+    );
+    close?.click();
+    await fixture.whenStable();
+    expect(TestBed.inject(DialogService).active()).toBeNull();
+  });
+
+  function host(fixture: ComponentFixture<AddDeviceDialog>): HTMLElement {
+    return fixture.nativeElement as HTMLElement;
+  }
 });

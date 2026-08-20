@@ -71,24 +71,18 @@ export interface DeviceDetailDto extends DeviceDto {
 }
 
 /**
- * A device seen on the network but not registered yet, as served by
- * `GET /devices/discovered`.
+ * `GET /devices/discovered` — one access point the hub's radio can see, filtered
+ * server-side to names starting with "SmartHome".
  *
- * NOT IMPLEMENTED IN THE API YET — this shape is what the client asks for, and
- * it is deliberately close to what the hub already knows about a device: the MAC
- * is the identity, everything else is a hint. `type` is optional because a raw
- * device on the wifi does not necessarily announce what it is; the user then
- * picks the type when setting it up. See docs/API-NOTES.md.
+ * This is a WIFI SCAN, not a database lookup: the hub shells out to
+ * `iw dev wlan0 scan` (`Services/WifiDiscoveryService.cs`). A device therefore
+ * only appears while it is broadcasting its own network, and nothing here is
+ * stored. `signalStrength` is dBm — closer to 0 is stronger.
  */
 export interface DiscoveredDeviceDto {
+  readonly ssid: string;
   readonly macAddress: string;
-  readonly iPv4Address?: string | null;
-  /** 'lamp' | 'thermometer' | 'motion' | 'humidity' when the hub knows. */
-  readonly type?: string | null;
-  /** A name to prefill, when the device announces one. */
-  readonly suggestedName?: string | null;
-  /** When the hub last heard from it. */
-  readonly lastSeen?: string | null;
+  readonly signalStrength: number;
 }
 
 /** The MAC address is required and must be AA:BB:CC:DD:EE:FF (the API validates it). */

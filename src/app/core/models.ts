@@ -59,15 +59,18 @@ export type Device = LampDevice | ThermometerDevice | MotionSensorDevice | Humid
 export type DeviceKind = Device['kind'];
 
 /** A device found on the wifi that is not registered in the home yet. */
+/**
+ * A device seen broadcasting its own wifi network, as the hub's scan reports it.
+ * Everything we know is in the name and the signal: it is not on the home
+ * network, so there is no IP, no type and no history yet.
+ */
 export interface DiscoveredDevice {
-  /** The identity: POST /devices registers on the MAC address. */
+  /** The network name it is broadcasting, e.g. `SmartHome-5A7C`. */
+  readonly ssid: string;
+  /** BSSID of that access point. */
   readonly mac: string;
-  /** Prefilled name when the device announced one, otherwise empty. */
-  readonly suggestedName: string;
-  /** null when the network cannot tell what it is — then the user picks a type. */
-  readonly kind: DeviceKind | null;
-  readonly ip: string | null;
-  readonly lastSeen: Date | null;
+  /** dBm; closer to 0 is stronger. */
+  readonly signalStrength: number;
 }
 
 export interface HistoryPoint {
