@@ -1,27 +1,31 @@
 trigger:
-  - main
+ - main
 
 pool:
-  name: SmartHome
-  demands:
-    - Agent.Name -equals SmartHome-Pi
+ name: SmartHome
+ demands:
+ - Agent.Name -equals SmartHome-Pi
 
 jobs:
-- job: UpdateFrontend
-  displayName: 'Updating Frontend'
+ - job: UpdateFrontend
+ displayName: 'Updating Frontend'
 
-  steps:
-  - script: |
-      cd ~/SmartHome-Frontend
+ steps:
+ - script: |
+ cd ~/SmartHome-Frontend
 
-      echo "Updating frontend repository..."
-      git pull origin main
+ echo "Updating frontend repository..."
+ git pull origin main
 
-      echo "Installing dependencies..."
-      npm ci
+ echo "Installing dependencies..."
+ npm ci
 
-      echo "Building Angular frontend..."
-      npm run build
+ echo "Building Angular frontend..."
+ npm run build
 
-      echo "Frontend build complete."
-    displayName: 'Build SmartHome Frontend'
+ echo "Deploying frontend to Apache..."
+ sudo rm -rf /var/www/smarthome/*
+ sudo cp -r dist/smart-home/browser/* /var/www/smarthome/
+
+ echo "Frontend deployment complete."
+ displayName: 'Build and Deploy SmartHome Frontend'
