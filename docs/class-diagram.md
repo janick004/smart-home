@@ -62,6 +62,7 @@ classDiagram
         +lampsOnCount: Signal~number~
         +offlineDevices: Signal~Device[]~
         +load() Promise~void~
+        +refresh() Promise~boolean~
         +roomById(id) Room
         +deviceById(id) Device
         +devicesInRoom(roomId) Device[]
@@ -88,6 +89,12 @@ classDiagram
         -opener: HTMLElement
         +open(dialog) void
         +close() void
+    }
+
+    class AutoRefresh {
+        <<Injectable root>>
+        +start() void
+        +stop() void
     }
 
     class ClockService {
@@ -173,6 +180,8 @@ classDiagram
     Device <|-- HumiditySensorDevice
 
     HomeStore --> SmartHomeApi : bruger
+    AutoRefresh --> HomeStore : refresh() paa timer
+    note for AutoRefresh "Polling, ikke push: API'et kan ikke sige<br/>at noget er sket. Kalder refresh(), ALDRIG<br/>load() - load() draeber fortryd-vinduet<br/>og faar skaermen til at blinke.
     HomeStore ..> Mapping : DTO -> domæne
     HomeStore o-- Room : ejer
     HomeStore o-- Device : ejer

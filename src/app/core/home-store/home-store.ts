@@ -127,6 +127,8 @@ export class HomeStore {
   /**
    * Loads the whole home: rooms, devices, the latest sensor samples, and the
    * latest recorded commands (the API's only on/off signal for lamps).
+   *
+   * Has two side effects a timer must NOT have — see {@link refresh}.
    */
   async load(): Promise<void> {
     this.statusState.set('loading');
@@ -138,6 +140,49 @@ export class HomeStore {
     }
     await Promise.allSettled([...this.inFlightCommits]);
     try {
+      await this.fetchAndApply();
+      this.statusState.set('ready');
+    } catch (error) {
+      console.error('Loading the home from the API failed', error);
+      this.statusState.set('error');
+    }
+  }
+
+  /**
+   * A silent re-read, for the automatic refresh. Same data as {@link load},
+   * none of its side effects — and both of those matter:
+   *
+   * - `load()` force-expires pending undo toasts. On a timer that would quietly
+   *   destroy the user's 10-second "Fortryd" window: delete a device, and the
+   *   next tick commits the DELETE before they can change their mind.
+   * - `load()` flips status to 'loading'. On a timer that would flash the whole
+   *   screen into its load state every few seconds.
+   *
+   * Skipped entirely while destructive work is pending or a write is in flight:
+   * re-reading then would show state the user is in the middle of changing.
+   * Returns false when it skipped, so a caller can tell nothing happened.
+   */
+  async refresh(): Promise<boolean> {
+    if (this.toastExpireActions.size > 0 || this.inFlightCommits.size > 0) {
+      return false;
+    }
+    if (this.statusState() === 'loading') {
+      return false;
+    }
+    try {
+      await this.fetchAndApply();
+      return true;
+    } catch (error) {
+      // Deliberately quiet: a failed background refresh must not replace a
+      // working screen with an error. The next tick tries again.
+      console.warn('Background refresh failed; keeping what is on screen', error);
+      return false;
+    }
+  }
+
+  /** The shared read-and-merge. Sets no status and touches no toasts. */
+  private async fetchAndApply(): Promise<void> {
+    {
       const [roomDtos, deviceDtos] = await Promise.all([
         this.api.getRooms(),
         this.api.getDevices(),
@@ -169,10 +214,6 @@ export class HomeStore {
           return [device];
         }),
       );
-      this.statusState.set('ready');
-    } catch (error) {
-      console.error('Loading the home from the API failed', error);
-      this.statusState.set('error');
     }
   }
 

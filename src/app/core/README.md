@@ -13,6 +13,7 @@ Ingen UI her. `core` ved hvad et hjem _er_, og hvordan man taler med serveren.
 | `dialog.ts`             | hvilken dialog er åben (én ad gangen) + fokus tilbage til den der åbnede          |
 | `clock.ts`              | ét fælles tikkende `now`-signal til relative tidsangivelser                       |
 | `discovery/`            | spørger API'et hvilke enheder der er set på nettet, men ikke registreret          |
+| `live/auto-refresh.ts`  | genlæser hjemmet på en timer, så tallene ikke står stille                         |
 
 ## HomeStore
 
@@ -59,3 +60,28 @@ Tre ting, API'et gør anderledes end domænet — alle håndteret i `api/mapping
 
 Se [../../../docs/API-NOTES.md](../../../docs/API-NOTES.md) for endpoint-brug,
 konventioner i databasen og ønskelisten til API'et.
+
+## live — hvorfor det er polling og ikke push
+
+Appen opdaterede sig slet ikke før: `load()` blev kun kaldt når en side blev
+åbnet. `AutoRefresh` genlæser derfor hjemmet hvert 15. sekund.
+
+Det er polling med vilje. API'et har intet der kan sige "der er sket noget" — en
+webhook kan ikke nå en browser, og Server-Sent Events kræver både et nyt endpoint
+og en Apache-konfiguration der ikke buffrer. Byt timeren ud med en `EventSource`
+i `auto-refresh.ts` når hub'en kan pushe; resten af appen skal ikke ændres.
+
+Tre ting den med vilje IKKE gør, og hver af dem er en fejl man ellers laver:
+
+- **Den kalder ikke `load()`.** `load()` tvinger ventende fortryd-toasts til at
+  udløbe og sætter status til `loading`. På en timer ville det første lydløst
+  dræbe brugerens 10-sekunders "Fortryd" (slet en enhed, og næste tik committer
+  sletningen), og det andet ville få hele skærmen til at blinke. Derfor findes
+  `HomeStore.refresh()` som en tavs udgave.
+- **Den tikker ikke i en skjult fane.** En tablet der ligger på en hylde ville
+  ellers spørge hub'en om hele hjemmet hvert 15. sekund i al evighed. Den
+  opdaterer i stedet én gang når fanen kommer tilbage — hvilket præcis er når
+  det på skærmen er mest forældet.
+- **Den overlapper ikke.** En langsom hub ville ellers efterlade flere kald i
+  luften på én gang, og så vinder det der svarer sidst, uanset hvilket der var
+  nyest.

@@ -4,6 +4,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter, map } from 'rxjs';
 import { DialogService } from './core/dialog/dialog';
 import { HomeStore } from './core/home-store/home-store';
+import { AutoRefresh } from './core/live/auto-refresh';
 import { DialogHost } from './dialogs/dialog-host/dialog-host';
 import { TabletFrame } from './layout/tablet-frame/tablet-frame';
 import { ToastHost } from './toasts/toast-host/toast-host';
@@ -19,6 +20,12 @@ export class App {
   private readonly store = inject(HomeStore);
   private readonly dialogs = inject(DialogService);
   private readonly router = inject(Router);
+
+  constructor() {
+    // Started here, once, for the app's lifetime — not per page. A page that
+    // started its own would leave one running per visit.
+    inject(AutoRefresh).start();
+  }
 
   private readonly url = toSignal(
     this.router.events.pipe(

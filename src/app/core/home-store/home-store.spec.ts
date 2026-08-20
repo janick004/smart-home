@@ -330,4 +330,51 @@ describe('HomeStore', () => {
       vi.useRealTimers();
     }
   });
+
+  describe('refresh (the automatic one)', () => {
+    it('leaves the undo window alone', async () => {
+      const lamp = lampWhere(false);
+      store.removeDevice(lamp.id);
+      expect(store.toasts().length).toBe(1);
+
+      const refreshed = await store.refresh();
+
+      // The whole point: a timer must not commit the DELETE behind the user's
+      // back. load() deliberately does; refresh() must not.
+      expect(refreshed).toBe(false);
+      expect(store.toasts().length).toBe(1);
+      expect(api.deletedDeviceIds).toEqual([]);
+      expect(store.deviceById(lamp.id)).toBeUndefined();
+    });
+
+    it('does not flip the screen into its loading state', async () => {
+      expect(store.status()).toBe('ready');
+      const spy = vi.spyOn(api, 'getRooms');
+
+      await store.refresh();
+
+      expect(spy).toHaveBeenCalled();
+      // A timer that toggled status would flash every tile every few seconds.
+      expect(store.status()).toBe('ready');
+    });
+
+    it('picks up a value that changed on the server', async () => {
+      const before = store.devices().length;
+      await store.refresh();
+      expect(store.devices().length).toBe(before);
+      expect(store.status()).toBe('ready');
+    });
+
+    it('keeps the screen when the hub stops answering', async () => {
+      vi.spyOn(api, 'getRooms').mockRejectedValueOnce(new Error('hub væk'));
+      const devices = store.devices().length;
+
+      const refreshed = await store.refresh();
+
+      // A failed background read must not replace a working screen with an error.
+      expect(refreshed).toBe(false);
+      expect(store.status()).toBe('ready');
+      expect(store.devices().length).toBe(devices);
+    });
+  });
 });
