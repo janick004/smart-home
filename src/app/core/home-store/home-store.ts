@@ -1,5 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { EventLogDto, SensorDataDto } from '../api/api-types';
 import {
+  COMMAND_EVENT_TYPE,
   groupLatestCommands,
   groupLatestReadings,
   mapDevice,
@@ -33,6 +36,14 @@ export interface ShowToastInput {
    */
   readonly onExpire?: () => void;
 }
+
+/**
+ * Fallback-vinduet, brugt KUN mod en hub der ikke har `/latest`-endpointene.
+ * Det er den opførsel de erstattede, og dens fejl er grunden til at de findes:
+ * en enhed der sender sjældnere end vinduet læses som "ingen data".
+ */
+const FALLBACK_LOOKBACK_MS = 48 * 3_600_000;
+const FALLBACK_MAX_TAKE = 1000;
 
 export type StoreStatus = 'loading' | 'ready' | 'error';
 
@@ -132,8 +143,8 @@ export class HomeStore {
         this.api.getDevices(),
       ]);
       const [samples, commandEvents] = await Promise.all([
-        this.api.getLatestSensorData(),
-        this.api.getLatestCommands(),
+        this.latestReadings(),
+        this.latestCommands(),
       ]);
       const readings = groupLatestReadings(samples);
       const commands = groupLatestCommands(commandEvents);
@@ -177,6 +188,43 @@ export class HomeStore {
     return this.devicesState().filter((device) => device.roomId === roomId);
   }
 
+  /**
+   * `/sensordata/latest` is newer than the API that is actually deployed, which
+   * answers 404. Failing the whole load there would leave the app unusable
+   * against a hub nobody has patched, so fall back to the windowed query the
+   * endpoint replaced — with its known flaw — rather than to nothing.
+   */
+  private async latestReadings(deviceId?: string): Promise<SensorDataDto[]> {
+    try {
+      return await this.api.getLatestSensorData(deviceId);
+    } catch (error) {
+      if (!isMissingEndpoint(error)) {
+        throw error;
+      }
+      return this.api.querySensorData({
+        ...(deviceId === undefined ? {} : { deviceId }),
+        from: new Date(Date.now() - FALLBACK_LOOKBACK_MS),
+        take: FALLBACK_MAX_TAKE,
+      });
+    }
+  }
+
+  /** Same fallback as {@link latestReadings}, for the lamp-state events. */
+  private async latestCommands(deviceId?: string): Promise<EventLogDto[]> {
+    try {
+      return await this.api.getLatestCommands(deviceId);
+    } catch (error) {
+      if (!isMissingEndpoint(error)) {
+        throw error;
+      }
+      return this.api.queryEventLog({
+        ...(deviceId === undefined ? {} : { deviceId }),
+        eventType: COMMAND_EVENT_TYPE,
+        take: FALLBACK_MAX_TAKE,
+      });
+    }
+  }
+
   /** Re-fetches one device (plus readings) — the closest the API has to a ping. */
   async refreshDevice(deviceId: string): Promise<Device | null> {
     try {
@@ -184,10 +232,8 @@ export class HomeStore {
       // Deliberately the SAME two calls as load(), just narrowed to one device:
       // if the two paths asked differently they could disagree about the value.
       const [samples, events] = await Promise.all([
-        this.api.getLatestSensorData(deviceId),
-        parseDeviceKind(dto.type) === 'lamp'
-          ? this.api.getLatestCommands(deviceId)
-          : Promise.resolve([]),
+        this.latestReadings(deviceId),
+        parseDeviceKind(dto.type) === 'lamp' ? this.latestCommands(deviceId) : Promise.resolve([]),
       ]);
       const readings = groupLatestReadings(samples).get(deviceId) ?? {};
       const command = groupLatestCommands(events).get(deviceId) ?? null;
@@ -656,4 +702,9 @@ export class HomeStore {
       return next;
     });
   }
+}
+
+/** A 404 means the hub predates the endpoint — anything else is a real failure. */
+function isMissingEndpoint(error: unknown): boolean {
+  return error instanceof HttpErrorResponse && error.status === 404;
 }
