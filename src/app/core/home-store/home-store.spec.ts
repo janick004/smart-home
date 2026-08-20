@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { SmartHomeApiStub } from '../../testing/api-stub';
@@ -363,6 +364,24 @@ describe('HomeStore', () => {
       await store.refresh();
       expect(store.devices().length).toBe(before);
       expect(store.status()).toBe('ready');
+    });
+
+    it('stops asking for an endpoint the hub does not have', async () => {
+      const notFound = new HttpErrorResponse({ status: 404 });
+      const readings = vi.spyOn(api, 'getLatestSensorData').mockRejectedValue(notFound);
+      const commands = vi.spyOn(api, 'getLatestCommands').mockRejectedValue(notFound);
+      const fallbackReadings = vi.spyOn(api, 'querySensorData');
+
+      await store.refresh();
+      await store.refresh();
+      await store.refresh();
+
+      // Probed once. Without this, every refresh burns two wasted round-trips on
+      // a missing endpoint — every 15 seconds, from every tablet in the house.
+      expect(readings).toHaveBeenCalledTimes(1);
+      expect(commands).toHaveBeenCalledTimes(1);
+      // And the fallback still ran every time, so the data is not stale.
+      expect(fallbackReadings).toHaveBeenCalledTimes(3);
     });
 
     it('keeps the screen when the hub stops answering', async () => {
